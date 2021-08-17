@@ -112,57 +112,30 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card">
-                            <div class="card-header" id="...">
-                                <section class="mb-0 mt-0">
-                                    <div role="menu" class="collapsed" data-toggle="collapse"
-                                         data-target="#defaultAccordionThree" aria-expanded="true"
-                                         aria-controls="defaultAccordionThree">
-                                        {{ __('messages.ad_balance') }}
-                                        <div class="icons">
-                                            <svg> ...</svg>
-                                        </div>
-                                    </div>
-                                </section>
-                            </div>
-                            <div id="defaultAccordionThree" class="collapse" aria-labelledby="..."
-                                 data-parent="#toggleAccordion">
-                                <div class="card-body">
-                                    <div class="form-group mb-4">
-                                        <label for="map_url">{{ __('messages.new_user_free_balance') }}</label>
-                                        <input type="text" name="free_balance" class="form-control" id="free_balance"
-                                               value="{{$data['setting']['free_balance']}}">
-                                    </div>
-                                    <div class="form-group mb-4 row">
-                                        <div class="col-md-4">
-                                            <label for="plan_price"> &nbsp; </label>
-                                            <div class="form-check pl-0">
-                                                <div class="custom-control custom-checkbox checkbox-info">
-                                                    <input type="checkbox"
-                                                           @if($data['setting']['is_loop_free_balance'] == 'y')  checked
-                                                           @endif class="custom-control-input"
-                                                           name="is_loop_free_balance"
-                                                           id="loop_free_balance">
-                                                    <label class="custom-control-label"
-                                                           for="loop_free_balance">{{ __('messages.make_perioode_free_balance') }}</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4" id="loop_cont_1">
-                                            <label for="plan_price">{{ __('messages.period') }}</label>
-                                            <input type="number" min="1" name="free_loop_period" class="form-control"
-                                                   value="{{$data['setting']['free_loop_period']}}">
-                                        </div>
-                                        <div class="col-md-4" id="loop_cont_2">
-                                            <label for="plan_price">{{ __('messages.free_balance') }}</label>
-                                            <input type="number" name="free_loop_balance" step="any"
-                                                   class="form-control"
-                                                   value="{{$data['setting']['free_loop_balance']}}">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+{{--                        <div class="card">--}}
+{{--                            <div class="card-header" id="...">--}}
+{{--                                <section class="mb-0 mt-0">--}}
+{{--                                    <div role="menu" class="collapsed" data-toggle="collapse"--}}
+{{--                                         data-target="#defaultAccordionThree" aria-expanded="true"--}}
+{{--                                         aria-controls="defaultAccordionThree">--}}
+{{--                                        {{ __('messages.ad_balance') }}--}}
+{{--                                        <div class="icons">--}}
+{{--                                            <svg> ...</svg>--}}
+{{--                                        </div>--}}
+{{--                                    </div>--}}
+{{--                                </section>--}}
+{{--                            </div>--}}
+{{--                            <div id="defaultAccordionThree" class="collapse" aria-labelledby="..."--}}
+{{--                                 data-parent="#toggleAccordion">--}}
+{{--                                <div class="card-body">--}}
+{{--                                    <div class="form-group mb-4">--}}
+{{--                                        <label for="map_url">{{ __('messages.expier_days') }}</label>--}}
+{{--                                        <input type="number" min="1" name="expier_days" class="form-control" id="expier_days"--}}
+{{--                                               value="{{$data['setting']['expier_days']}}">--}}
+{{--                                    </div>--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
+{{--                        </div>--}}
                     </div>
                     <input type="submit" value="{{ __('messages.edit') }}" class="btn btn-primary">
                 </form>

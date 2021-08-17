@@ -38,17 +38,7 @@ class SettingController extends AdminController{
         $setting->facebook = $request->facebook;
         $setting->twitter = $request->twitter;
         $setting->snap_chat = $request->snap_chat;
-        $setting->free_balance = $request->free_balance;
-
-		if($request->is_loop_free_balance){
-			$setting->is_loop_free_balance = 'y';
-		}else{
-			$setting->is_loop_free_balance = 'n';
-		}
-        $setting->free_loop_period = $request->free_loop_period;
-        $setting->free_loop_balance = $request->free_loop_balance;
-
-
+//        $setting->expier_days = $request->expier_days;
 		$setting->save();
         return  back();
     }

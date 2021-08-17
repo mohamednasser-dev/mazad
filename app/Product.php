@@ -11,7 +11,7 @@ class Product extends Model
     protected $fillable = ['title','description', 'price','category_id','sub_category_id','sub_category_two_id','expire_special_date',
         'sub_category_three_id','sub_category_four_id','user_id', 'type','publication_date','re_post_date','is_special',
         'views', 'offer', 'status', 'expiry_date','main_image','expire_pin_date','created_at','plan_id','publish',
-        'sub_category_five_id','choose_it','city_id','area_id','latitude','longitude','share_location','deleted'];
+        'sub_category_five_id','choose_it','city_id','area_id','latitude','longitude','share_location','deleted','day_count','min_price'];
     public function category() {
         return $this->belongsTo('App\Category', 'category_id');
     }
@@ -38,6 +38,11 @@ class Product extends Model
     public function Views() {
         return $this->hasMany('App\Product_view', 'product_id');
     }
+
+    public function Product_Mazads() {
+        return $this->hasMany('App\Product_mazad', 'product_id');
+    }
+
     public function City() {
         return $this->belongsTo('App\City', 'city_id');
     }
@@ -78,5 +83,24 @@ class Product extends Model
     public function getCreatedAtAttribute($date)
     {
         return Carbon::createFromFormat('Y-m-d H:i:s', $date)->translatedformat('F d');
+    }
+
+    public function getPriceAttribute($price)
+    {
+        $max_price = Product_mazad::where('product_id',$this->id)->get()->max('price');
+        if($max_price == 0){
+            return $price;
+        }else{
+            $max_price  = number_format((float)( $max_price), 3);
+            return $max_price;
+        }
+    }
+
+    public function getMinPriceAttribute($min_price)
+    {
+
+            $min_price  = number_format((float)( $min_price), 3);
+            return $min_price;
+
     }
 }

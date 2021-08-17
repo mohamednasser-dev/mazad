@@ -20,7 +20,7 @@ class CheckGuest
             return $next($request);
         }else{
             $gusetkey = $request->header('Authorization');
-            if($gusetkey == '$2y$12$ZtgKLOyfvyXH33JE67Ei0kqupt771t62d21M4wOJumBmsZ1bexxpCPiuhfdRKOD'){
+            if($gusetkey == '$2y$12$ZtgKLOyfvyXH33JE67Ei0kqupt771t62d21M4wOJumBmsZ1bexxpCPiuhfdRKODM'){
                 return $next($request);
             }
             $response = APIHelpers::createApiResponse(true , 401 ,  'Guest token wrong', 'توكن زائر خاطيء', null,$request->lang );

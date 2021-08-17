@@ -1,0 +1,16 @@
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Product_mazad extends Model
+{
+    protected $fillable = ['ip', 'product_id','user_id','price'];
+
+    public function Product() {
+        return $this->belongsTo('App\Product', 'product_id')
+            ->select('id','title','main_image','price','description','created_at')
+            ->where('deleted',0)->where('status',1)->where('publish','Y');
+    }
+}

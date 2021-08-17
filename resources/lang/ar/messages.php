@@ -7,7 +7,7 @@ return [
 
 
 
-
+    'expier_days' => "عدد أيام انتهاء المزاد",
     'our_offers' => "عروضنا",
     'choose_to_you' => "اخترنالك",
     'show_all' => "اخترنالك",

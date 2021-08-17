@@ -7,6 +7,7 @@ use App\Category_option;
 use App\ContactUs;
 use App\Conversation;
 use App\Participant;
+use App\Product_mazad;
 use App\SubCategory;
 use App\SubFiveCategory;
 use App\SubFourCategory;
@@ -197,9 +198,9 @@ class ProductController extends Controller
         $lang = $request->lang;
         Session::put('lang', $lang);
         $data = Product::with('Product_user')->with('Area_name')->with('category_name')
-            ->select('id', 'title', 'main_image', 'description', 'price', 'type', 'publication_date as date', 'user_id', 'category_id', 'latitude', 'longitude', 'share_location', 'area_id')
+            ->select('id', 'title', 'main_image', 'description','expiry_date', 'day_count','price','min_price', 'type', 'publication_date as date', 'user_id', 'category_id', 'latitude', 'longitude', 'share_location', 'area_id')
             ->find($request->id);
-        $data->price = number_format((float)($data->price), 3);
+        $data->mazad_count = Product_mazad::where('product_id',$data->id)->get()->count();
 
         $user_ip_address = $request->ip();
         if ($user == null) {
@@ -596,7 +597,9 @@ class ProductController extends Controller
             'longitude' => 'required',
             'share_location' => 'required',
             'options' => '',
-            'plan_id' => 'required',
+            'day_count' => 'required',
+            'price' => 'required',
+            'min_price' => 'required'
         ]);
         if ($validator->fails()) {
             $response = APIHelpers::createApiResponse(true, 406, $validator->messages()->first(), $validator->messages()->first(), null, $request->lang);
@@ -605,122 +608,69 @@ class ProductController extends Controller
             $user = auth()->user();
             if ($user != null) {
                 $input['user_id'] = $user->id;
-                $selected_plan = Plan::where('id', $request->plan_id)->first();
-                $plan_price = $selected_plan->price;
-                if ($plan_price <= $user->my_wallet) {
-                    //to select expire days of selected plane
-                    $plan_detail = Plan_details::where('plan_id', $request->plan_id)->where('type', 'expier_num')->first();
-                    $expire_days = $plan_detail->expire_days;
-                    $user->my_wallet = $user->my_wallet - $plan_price;
-                    if ($user->free_balance >= $plan_price) {
-                        $user->free_balance = $user->free_balance - $plan_price;
-                    } else if ($user->payed_balance >= $plan_price) {
-                        $user->payed_balance = $user->payed_balance - $plan_price;
-                    } else {
-                        $free_balance = $user->free_balance;  //70
-                        $payed_balance = $user->payed_balance;  //30
-                        $price = $plan_price; //100
-                        $after_min_free = $price - $free_balance;  // 100 - 70 = 30
-                        if ($after_min_free <= $payed_balance && $after_min_free > 0) {
-                            // 30 <= 30 && 30 < 0
-                            $user->free_balance = 0;
-                            $user->payed_balance = $user->payed_balance - $after_min_free;
-                        } else if ($after_min_free > $payed_balance && $after_min_free > 0) {
-                            $after_min_payed = $price - $payed_balance;
-                            $user->free_balance = $user->free_balance - $after_min_payed;
-                            $user->payed_balance = 0;
+
+                //create expier day
+                $mytime = Carbon::now();
+                $today = Carbon::parse($mytime->toDateTimeString())->format('Y-m-d H:i');
+                $final_retweet_date = Carbon::createFromFormat('Y-m-d H:i', $today);
+                $final_pin_date = Carbon::createFromFormat('Y-m-d H:i', $today);
+                $final_expire_pin_date = $final_pin_date->addDays($request->day_count);
+                $input['expiry_date'] = $final_expire_pin_date;
+                $input['publish'] = 'Y';
+                $input['publication_date'] = $today;
+                //save second step of creation ...
+                $image = $request->main_image;
+                Cloudder::upload("data:image/jpeg;base64," . $image, null);
+                $imagereturned = Cloudder::getResult();
+                $image_id = $imagereturned['public_id'];
+                $image_format = $imagereturned['format'];
+                $image_new_name = $image_id . '.' . $image_format;
+                $input['main_image'] = $image_new_name;
+                //create final
+
+                $ad_data = Product::create($input);
+                //save first mazad
+                if ($request->price != null) {
+                    $mazad_data['price']= $request->price ;
+                    $mazad_data['product_id']= $ad_data->id ;
+                    $mazad_data['user_id']= $user->id ;
+                    Product_mazad::create($mazad_data);
+                }
+
+                //save product feature ...
+                if ($request->options != null) {
+                    foreach ($request->options as $key => $option) {
+                        if ($option['option_value'] != null) {
+                            if (is_numeric($option['option_value'])) {
+                                $option_values = Category_option_value::where('id', $option['option_value'])->first();
+                                if ($option_values != null) {
+                                    $feature_data['type'] = 'option';
+                                } else {
+                                    $feature_data['type'] = 'manual';
+                                }
+                            } else {
+                                $feature_data['type'] = 'manual';
+                            }
+                            $feature_data['product_id'] = $ad_data->id;
+                            $feature_data['target_id'] = $option['option_value'];
+                            $feature_data['option_id'] = $option['option_id'];
+                            Product_feature::create($feature_data);
                         }
                     }
-                    $user->save();
-                    //to get the expire_date of ad
-                    $mytime = Carbon::now();
-                    $today = Carbon::parse($mytime->toDateTimeString())->format('Y-m-d H:i');
-                    $pin = Plan_details::where('plan_id', $request->plan_id)->where('type', 'pin')->first();
-                    if ($pin != null) {
-                        $expire_pin_date = $pin->expire_days;
-                        $input['pin'] = 1;
-                        //to create expire pin date
-                        $final_pin_date = Carbon::createFromFormat('Y-m-d H:i', $today);
-                        $final_expire_pin_date = $final_pin_date->addDays($expire_pin_date);
-                        $input['expire_pin_date'] = $final_expire_pin_date;
-                    }
-                    $re_post = Plan_details::where('plan_id', $request->plan_id)->where('type', 're_post')->first();
-                    if ($re_post != null) {
-                        $expire_re_post_date = $re_post->expire_days;
-                        $input['re_post'] = '1';
-                        //to create expire pin date
-                        $final_pin_date = Carbon::createFromFormat('Y-m-d H:i', $today);
-                        $final_expire_re_post_date = $final_pin_date->addDays($expire_re_post_date);
-                        $input['re_post_date'] = $final_expire_re_post_date;
-                    }
-                    $special = Plan_details::where('plan_id', $request->plan_id)->where('type', 'special')->first();
-                    if ($special != null) {
-                        $expire_special_date = $special->expire_days;
-                        $input['is_special'] = '1';
-                        //to create expire pin date
-                        $final_pin_date = Carbon::createFromFormat('Y-m-d H:i', $today);
-                        $final_expire_special_date = $final_pin_date->addDays($expire_special_date);
-                        $input['expire_special_date'] = $final_expire_special_date;
-                    }
-                    $final_today = Carbon::createFromFormat('Y-m-d H:i', $today);
-                    $expire_date = $final_today->addDays($expire_days);
-                    $input['publish'] = 'Y';
-                    $input['plan_id'] = $request->plan_id;
-                    $input['publication_date'] = $today;
-                    $input['expiry_date'] = $expire_date;
-                    //save second step of creation ...
-                    $image = $request->main_image;
+                }
+                foreach ($request->images as $image) {
                     Cloudder::upload("data:image/jpeg;base64," . $image, null);
                     $imagereturned = Cloudder::getResult();
                     $image_id = $imagereturned['public_id'];
                     $image_format = $imagereturned['format'];
-                    $image_new_name = $image_id . '.' . $image_format;
-                    $input['main_image'] = $image_new_name;
-                    //create final
-                    if ($input['price'] == null) {
-                        $input['price'] = '0';
-                    }
-                    $ad_data = Product::create($input);
+                    $image_name = $image_id . '.' . $image_format;
 
-                    //save product feature ...
-                    if ($request->options != null) {
-                        foreach ($request->options as $key => $option) {
-                            if ($option['option_value'] != null) {
-                                if (is_numeric($option['option_value'])) {
-                                    $option_values = Category_option_value::where('id', $option['option_value'])->first();
-                                    if ($option_values != null) {
-                                        $feature_data['type'] = 'option';
-                                    } else {
-                                        $feature_data['type'] = 'manual';
-                                    }
-                                } else {
-                                    $feature_data['type'] = 'manual';
-                                }
-                                $feature_data['product_id'] = $ad_data->id;
-                                $feature_data['target_id'] = $option['option_value'];
-                                $feature_data['option_id'] = $option['option_id'];
-                                Product_feature::create($feature_data);
-                            }
-                        }
-                    }
-                    foreach ($request->images as $image) {
-                        Cloudder::upload("data:image/jpeg;base64," . $image, null);
-                        $imagereturned = Cloudder::getResult();
-                        $image_id = $imagereturned['public_id'];
-                        $image_format = $imagereturned['format'];
-                        $image_name = $image_id . '.' . $image_format;
-
-                        $data['product_id'] = $ad_data->id;
-                        $data['image'] = $image_name;
-                        ProductImage::create($data);
-                    }
-                    $response = APIHelpers::createApiResponse(false, 200, 'your ad added successfully', 'تم أنشاء الاعلان بنجاح', null, $request->lang);
-                    return response()->json($response, 200);
-                } else {
-                    $response = APIHelpers::createApiResponse(true, 406, 'Your wallet does not contain enough amount to create an ad',
-                        'محفظتك لا تحتوى على المبلغ الكافى لانشاء الاعلانا', null, $request->lang);
-                    return response()->json($response, 406);
+                    $data['product_id'] = $ad_data->id;
+                    $data['image'] = $image_name;
+                    ProductImage::create($data);
                 }
+                $response = APIHelpers::createApiResponse(false, 200, 'your auction added successfully', 'تم أنشاء المزاد بنجاح', null, $request->lang);
+                return response()->json($response, 200);
             } else {
                 $response = APIHelpers::createApiResponse(true, 406, '', 'يجب تسجيل الدخول اولا', null, $request->lang);
                 return response()->json($response, 406);
@@ -1077,8 +1027,8 @@ class ProductController extends Controller
             ->where('user_id', auth()->user()->id)
             ->select('id', 'title', 'price', 'main_image')
             ->orderBy('created_at', 'desc')
-            ->get()->map(function($data){
-                $data->price  = number_format((float)(  $data->price ), 3);
+            ->get()->map(function ($data) {
+                $data->price = number_format((float)($data->price), 3);
                 return $data;
             });
         $ads['current_ads'] = Product::where('status', 1)
@@ -1087,8 +1037,8 @@ class ProductController extends Controller
             ->where('user_id', auth()->user()->id)
             ->select('id', 'title', 'price', 'main_image')
             ->orderBy('created_at', 'desc')
-            ->get()->map(function($data){
-                $data->price  = number_format((float)(  $data->price ), 3);
+            ->get()->map(function ($data) {
+                $data->price = number_format((float)($data->price), 3);
                 return $data;
             });
         if (count($ads) == 0) {
@@ -1351,8 +1301,10 @@ class ProductController extends Controller
         $data['ad'] = Product::where('id', $id)
             ->with('City_api')
             ->with('Area_api')
-            ->select('id', 'category_id', 'sub_category_id', 'sub_category_two_id', 'sub_category_three_id', 'sub_category_four_id', 'sub_category_five_id', 'title', 'price', 'description', 'main_image', 'city_id', 'area_id', 'share_location', 'latitude', 'longitude')
+            ->select('id', 'category_id', 'sub_category_id', 'sub_category_two_id', 'sub_category_three_id', 'sub_category_four_id', 'sub_category_five_id', 'title', 'day_count','price','min_price', 'description', 'main_image', 'city_id', 'area_id', 'share_location', 'latitude', 'longitude')
             ->first();
+        $data['ad']->price  = number_format((float)( $data['ad']->price), 3);
+
         if ($data['ad']->share_location == 1) {
             $data['ad']->share_location = true;
         } else {
