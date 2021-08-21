@@ -54,6 +54,7 @@ use Illuminate\Http\Request;
 
     Route::get('products/{lang}/{v}' , 'ProductController@getproducts')->middleware('checkguest');
     Route::get('products/search/{lang}/{v}' , 'ProductController@getsearch')->middleware('checkguest');
+    Route::post('products/make_mazad/{lang}/{v}' , 'ProductController@make_mazad');
 
     //  plans apis
     Route::group([
@@ -190,6 +191,7 @@ use Illuminate\Http\Request;
 
     //auth routes
     Route::get('/my_account/{lang}/{v}' , 'UserController@my_account');
+    Route::get('/my_bids/{type}/{lang}/{v}' , 'UserController@my_bids');
     Route::get('/my_balance/{lang}/{v}' , 'UserController@my_balance');
 
     Route::group([
@@ -213,7 +215,8 @@ use Illuminate\Http\Request;
 
 
     Route::get('/ad/cities/{lang}/{v}' , 'ProductController@cities');
-    Route::get('/ad/areas/{lang}/{v}' , 'ProductController@areas');
+    Route::get('/ad/mazad_times/{lang}/{v}' , 'ProductController@get_mazad_times');
+    Route::get('/ad/areas/{city_id}/{lang}/{v}' , 'ProductController@areas');
     Route::get('/ad/last_seen/{lang}/{v}' , 'ProductController@last_seen');
     Route::get('/ad/offer_ads/{lang}/{v}' , 'ProductController@offer_ads')->middleware('checkguest');
     Route::get('/payments_date/{lang}/{v}' , 'UserController@payments_date');

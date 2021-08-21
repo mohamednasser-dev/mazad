@@ -96,6 +96,11 @@ Route::group(['middleware'=>'language','prefix' => "admin-panel",'namespace' => 
     Route::post('/cities/area/update/{id}' , 'CityController@update_area')->name('area.update');
     Route::get('/cities/area/delete/{id}' , 'CityController@destroy_area')->name('area.delete');
 
+    //mazaf_times
+    Route::resource('mazad_times' , 'MazadTimesController');
+    Route::post('/mazad_times/update/{id}' , 'MazadTimesController@update')->name('mazad_times.update');
+    Route::get('/mazad_times/delete/{id}' , 'MazadTimesController@destroy')->name('mazad_times.delete');
+
     Route::resource('balance_packages' , 'BalanceBackagesController');
     Route::post('/balance_p/update/{id}' , 'BalanceBackagesController@update')->name('balance_p.update');
     Route::get('/balance_packages/delete/{id}' , 'BalanceBackagesController@destroy')->name('balance_packages.delete');

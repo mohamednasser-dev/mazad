@@ -4,8 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Category;
 use App\Category_option;
-use App\ContactUs;
-use App\Conversation;
+use App\Mazad_time;
 use App\Participant;
 use App\Product_mazad;
 use App\SubCategory;
@@ -31,13 +30,14 @@ use App\User;
 use App\Plan;
 use App\City;
 use App\Area;
+use Exception;
 
 class ProductController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['ad_owner_info', 'current_ads', 'ended_ads', 'max_min_price', 'filter', 'offer_ads', 'republish_ad', 'areas', 'cities', 'third_step_excute_pay', 'save_third_step_with_money', 'update_ad', 'select_ad_data', 'delete_my_ad', 'save_third_
-        step', 'save_second_step', 'save_first_step', 'getdetails', 'last_seen', 'getoffers', 'getproducts', 'getsearch', 'getFeatureOffers']]);
+        $this->middleware('auth:api', ['except' => ['get_mazad_times', 'ad_owner_info', 'current_ads', 'ended_ads', 'max_min_price', 'filter', 'offer_ads', 'republish_ad', 'areas', 'cities', 'third_step_excute_pay', 'save_third_step_with_money', 'update_ad', 'select_ad_data', 'delete_my_ad', 'save_third_
+        step', 'save_second_step', 'save_first_step', 'make_mazad', 'getdetails', 'last_seen', 'getoffers', 'getproducts', 'getsearch', 'getFeatureOffers']]);
         //        --------------------------------------------- begin scheduled functions --------------------------------------------------------
 
         $expired = Product::where('status', 1)->whereDate('expiry_date', '<', Carbon::now())->get();
@@ -46,6 +46,10 @@ class ProductController extends Controller
             $product->status = 2;
             $product->re_post = '0';
             $product->save();
+
+            $max_price = Product_mazad::where('product_id', $row->id)->orderBy('price', 'desc')->first();
+            $max_price->status = 'winner';
+            $max_price->save();
         }
 
         $not_special = Product::where('status', 1)->where('is_special', '1')->whereDate('expire_special_date', '<', Carbon::now())->get();
@@ -192,16 +196,54 @@ class ProductController extends Controller
         return response()->json($response, 200);
     }
 
+    public function make_mazad(Request $request)
+    {
+        $lang = $request->lang;
+        $data = $request->all();
+        $validator = Validator::make($request->all(), [
+            'product_id' => 'required|exists:products,id',
+            'price' => 'required'
+        ]);
+        if ($validator->fails()) {
+            $response = APIHelpers::createApiResponse(true, 406, $validator->errors()->first(), $validator->errors()->first(), null, $lang);
+            return response()->json($response, 406);
+        }
+        $product = Product::find($request->product_id);
+        if ($product->min_price <= $request->price) {
+            try {
+                $user = auth()->user();
+                if ($product->user_id != $user->id) {
+                    $data['user_id'] = $user->id;
+                    Product_mazad::create($data);
+                    $response = APIHelpers::createApiResponse(false, 200, 'mazad make successfully', 'تم المزايدة بنجاح', null, $lang);
+                    return response()->json($response, 200);
+                } else {
+                    $response = APIHelpers::createApiResponse(true, 406, 'It is not possible for the auctioneer to bid', 'غير ممكن لصاحب المزاد ان يزايد', null, $lang);
+                    return response()->json($response, 406);
+                }
+            } catch (Exception $exception) {
+                $response = APIHelpers::createApiResponse(true, 406, 'you have make mazad befor', 'لقد تم المزايدة من قبل', null, $lang);
+                return response()->json($response, 406);
+            }
+
+        } else {
+            $response = APIHelpers::createApiResponse(true, 406, 'price entered is low than min price', 'السعر المدخل اقل من الحد الادنى للمزايدة', null, $lang);
+            return response()->json($response, 406);
+        }
+    }
+
     public function getdetails(Request $request)
     {
         $user = auth()->user();
         $lang = $request->lang;
         Session::put('lang', $lang);
-        $data = Product::with('Product_user')->with('Area_name')->with('category_name')
-            ->select('id', 'title', 'main_image', 'description','expiry_date', 'day_count','price','min_price', 'type', 'publication_date as date', 'user_id', 'category_id', 'latitude', 'longitude', 'share_location', 'area_id')
-            ->find($request->id);
-        $data->mazad_count = Product_mazad::where('product_id',$data->id)->get()->count();
+        $data = Product::with('Product_user')->with('category_name')
+            ->select('id', 'title', 'main_image', 'description', 'expiry_date', 'day_count_id',
+                'price', 'min_price', 'type', 'publication_date as date', 'user_id', 'category_id', 'latitude', 'longitude',
+                'share_location', 'city_id', 'area_id')
+            ->find($request->id)->makeHidden(['City', 'Area']);
 
+        $data->address = $data->City->title_ar . ' , ' . $data->Area->title_ar;
         $user_ip_address = $request->ip();
         if ($user == null) {
             $prod_view = Product_view::where('ip', $user_ip_address)->where('product_id', $data->id)->first();
@@ -222,20 +264,8 @@ class ProductController extends Controller
                 $prod_view->save();
             }
         }
-        $features = Product_feature::where('product_id', $request->id)
-            ->select('id', 'type', 'product_id', 'target_id', 'option_id')
-            ->get();
-        $feature_data = [];
-        foreach ($features as $key => $feature) {
-            $feature_data[$key]['image'] = $feature->Option->image;
-            if ($feature->type == 'manual') {
-                $feature_data[$key]['title'] = $feature->Option->title;
-                $feature_data[$key]['value'] = $feature->target_id;
-            } else if ($feature->type == 'option') {
-                $feature_data[$key]['title'] = $feature->Option->title;
-                $feature_data[$key]['value'] = $feature->Option_value->value;
-            }
-        }
+
+        $data->remaining_hours = Carbon::now()->diffInHours($data->expiry_date, false);
         if ($user) {
             $favorite = Favorite::where('user_id', $user->id)->where('product_id', $data->id)->first();
             if ($favorite) {
@@ -257,8 +287,6 @@ class ProductController extends Controller
         $date = date_create($data->date);
         $data->date = date_format($date, 'd M Y');
         $data->time = date_format($date, 'g:i a');
-        $data->likes = Favorite::where('product_id', $data->id)->count();
-
 
         //to get ad images in array
         $images = [];
@@ -267,60 +295,8 @@ class ProductController extends Controller
             $images[count($images)] = $data->main_image;
         }
         $data->images = $images;
-        $user_ids[] = null;
-        $user_other_ads = (object)[];
-        $user_other_ads = Product::where('id', '!=', $data->id)
-            ->where('status', 1)
-            ->where('publish', 'Y')
-            ->where('deleted', 0)
-            ->where('user_id', $data->user_id)
-            ->select('id', 'title', 'price', 'type', 'main_image as image', 'created_at')
-            ->limit(3)
-            ->get()
-            ->map(function ($ads) use ($lang) {
-                $ads->price = number_format((float)($ads->price), 3);
-                $ads->time = APIHelpers::get_month_year($ads->created_at, $lang);
-                return $ads;
-            });
 
-        foreach ($user_other_ads as $key => $row) {
-            $user_ids[$key] = $row->id;
-        }
-        if ($user_other_ads == null) {
-            $user_ids[0] = 0;
-            $user_other_ads = (object)[];
-        }
-
-        $related = Product::where('category_id', $data->category_id)
-            ->where('id', '!=', $data->id)
-            ->wherenotin('id', $user_ids)
-            ->where('status', 1)
-            ->where('publish', 'Y')
-            ->where('deleted', 0)
-            ->select('id', 'title', 'price', 'type', 'main_image as image', 'created_at')
-            ->limit(3)
-            ->get()
-            ->map(function ($ads) use ($lang) {
-                $ads->price = number_format((float)($ads->price), 3);
-                $ads->time = APIHelpers::get_month_year($ads->created_at, $lang);
-                return $ads;
-            });
-        for ($i = 0; $i < count($related); $i++) {
-            if ($user) {
-                $favorite = Favorite::where('user_id', $user->id)->where('product_id', $related[$i]['id'])->first();
-                if ($favorite) {
-                    $related[$i]['favorite'] = true;
-                } else {
-                    $related[$i]['favorite'] = false;
-                }
-            } else {
-                $related[$i]['favorite'] = false;
-            }
-        }
-        $views = Product_view::where('product_id', $data->id)->count();
-
-        $response = APIHelpers::createApiResponse(false, 200, '', '', array('product' => $data,
-            'features' => $feature_data, 'user_other_ads' => $user_other_ads, 'related' => $related, 'views' => $views), $request->lang);
+        $response = APIHelpers::createApiResponse(false, 200, '', '', $data, $request->lang);
         return response()->json($response, 200);
     }
 
@@ -596,8 +572,7 @@ class ProductController extends Controller
             'latitude' => 'required',
             'longitude' => 'required',
             'share_location' => 'required',
-            'options' => '',
-            'day_count' => 'required',
+            'day_count_id' => 'required|exists:mazad_times,id',
             'price' => 'required',
             'min_price' => 'required'
         ]);
@@ -614,7 +589,8 @@ class ProductController extends Controller
                 $today = Carbon::parse($mytime->toDateTimeString())->format('Y-m-d H:i');
                 $final_retweet_date = Carbon::createFromFormat('Y-m-d H:i', $today);
                 $final_pin_date = Carbon::createFromFormat('Y-m-d H:i', $today);
-                $final_expire_pin_date = $final_pin_date->addDays($request->day_count);
+                $mazad_time = Mazad_time::where('id', $request->day_count_id)->first();
+                $final_expire_pin_date = $final_pin_date->addDays($mazad_time->day_num);
                 $input['expiry_date'] = $final_expire_pin_date;
                 $input['publish'] = 'Y';
                 $input['publication_date'] = $today;
@@ -630,34 +606,13 @@ class ProductController extends Controller
 
                 $ad_data = Product::create($input);
                 //save first mazad
-                if ($request->price != null) {
-                    $mazad_data['price']= $request->price ;
-                    $mazad_data['product_id']= $ad_data->id ;
-                    $mazad_data['user_id']= $user->id ;
-                    Product_mazad::create($mazad_data);
-                }
+//                if ($request->price != null) {
+//                    $mazad_data['price'] = $request->price;
+//                    $mazad_data['product_id'] = $ad_data->id;
+//                    $mazad_data['user_id'] = $user->id;
+//                    Product_mazad::create($mazad_data);
+//                }
 
-                //save product feature ...
-                if ($request->options != null) {
-                    foreach ($request->options as $key => $option) {
-                        if ($option['option_value'] != null) {
-                            if (is_numeric($option['option_value'])) {
-                                $option_values = Category_option_value::where('id', $option['option_value'])->first();
-                                if ($option_values != null) {
-                                    $feature_data['type'] = 'option';
-                                } else {
-                                    $feature_data['type'] = 'manual';
-                                }
-                            } else {
-                                $feature_data['type'] = 'manual';
-                            }
-                            $feature_data['product_id'] = $ad_data->id;
-                            $feature_data['target_id'] = $option['option_value'];
-                            $feature_data['option_id'] = $option['option_id'];
-                            Product_feature::create($feature_data);
-                        }
-                    }
-                }
                 foreach ($request->images as $image) {
                     Cloudder::upload("data:image/jpeg;base64," . $image, null);
                     $imagereturned = Cloudder::getResult();
@@ -1301,9 +1256,9 @@ class ProductController extends Controller
         $data['ad'] = Product::where('id', $id)
             ->with('City_api')
             ->with('Area_api')
-            ->select('id', 'category_id', 'sub_category_id', 'sub_category_two_id', 'sub_category_three_id', 'sub_category_four_id', 'sub_category_five_id', 'title', 'day_count','price','min_price', 'description', 'main_image', 'city_id', 'area_id', 'share_location', 'latitude', 'longitude')
+            ->select('id', 'category_id', 'sub_category_id', 'sub_category_two_id', 'sub_category_three_id', 'sub_category_four_id', 'sub_category_five_id', 'title', 'day_count_id', 'price', 'min_price', 'description', 'main_image', 'city_id', 'area_id', 'share_location', 'latitude', 'longitude')
             ->first();
-        $data['ad']->price  = number_format((float)( $data['ad']->price), 3);
+        $data['ad']->price = number_format((float)($data['ad']->price), 3);
 
         if ($data['ad']->share_location == 1) {
             $data['ad']->share_location = true;
@@ -1582,19 +1537,38 @@ class ProductController extends Controller
         return response()->json($response, 200);
     }
 
-    public function areas(Request $request)
+    public function get_mazad_times(Request $request)
+    {
+        $lang = $request->lang;
+        $days = Mazad_time::where('deleted', '0')
+            ->select('id', 'day_num as title')
+            ->get()->map(function ($data) use ($lang) {
+                if ($lang == 'en') {
+                    $data->title = $data->title . ' days';
+                } else {
+                    $data->title = $data->title . ' ايام ';
+                }
+                return $data;
+            });
+        $response = APIHelpers::createApiResponse(false, 200, '', '', $days, $request->lang);
+        return response()->json($response, 200);
+    }
+
+    public function areas(Request $request, $city_id)
     {
         Session::put('api_lang', $request->lang);
+
+        $areas = [];
         if ($request->lang == 'en') {
-            $areas = Area::where('deleted', '0')
+            $areas = Area::where('city_id', $city_id)->where('deleted', '0')
                 ->select('id', 'title_en as title')
                 ->get();
         } else {
-            $areas = Area::where('deleted', '0')
+            $areas = Area::where('city_id', $city_id)->where('deleted', '0')
                 ->select('id', 'title_ar as title')
                 ->get();
         }
-        $response = APIHelpers::createApiResponse(false, 200, '', '', array('areas' => $areas), $request->lang);
+        $response = APIHelpers::createApiResponse(false, 200, '', '', $areas, $request->lang);
         return response()->json($response, 200);
     }
 }

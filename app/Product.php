@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
 //    protected $dates = ['publication_date'];
+    protected $appends = array('mazad_count');
     protected $fillable = ['title','description', 'price','category_id','sub_category_id','sub_category_two_id','expire_special_date',
         'sub_category_three_id','sub_category_four_id','user_id', 'type','publication_date','re_post_date','is_special',
         'views', 'offer', 'status', 'expiry_date','main_image','expire_pin_date','created_at','plan_id','publish',
-        'sub_category_five_id','choose_it','city_id','area_id','latitude','longitude','share_location','deleted','day_count','min_price'];
+        'sub_category_five_id','choose_it','city_id','area_id','latitude','longitude','share_location','deleted','day_count_id','min_price'];
     public function category() {
         return $this->belongsTo('App\Category', 'category_id');
     }
@@ -21,7 +22,7 @@ class Product extends Model
         return $this->belongsTo('App\Category', 'category_id')->select('id','title_'.$api_lang.' as title');
     }
     public function user() {
-        return $this->belongsTo('App\User', 'user_id');
+        return $this->belongsTo('App\User', 'user_id')->select('id','name','phone','email','image');
     }
     public function Product_user() {
         return $this->belongsTo('App\User', 'user_id')->select('id','image','name','email','phone');
@@ -43,6 +44,11 @@ class Product extends Model
         return $this->hasMany('App\Product_mazad', 'product_id');
     }
 
+    public function getMazadCountAttribute()
+    {
+        $number =  Product_mazad::where('product_id',$this->id)->get()->count();
+        return $number;
+    }
     public function City() {
         return $this->belongsTo('App\City', 'city_id');
     }
@@ -89,7 +95,7 @@ class Product extends Model
     {
         $max_price = Product_mazad::where('product_id',$this->id)->get()->max('price');
         if($max_price == 0){
-            return $price;
+            return number_format((float)( $price), 3);
         }else{
             $max_price  = number_format((float)( $max_price), 3);
             return $max_price;

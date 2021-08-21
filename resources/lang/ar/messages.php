@@ -3,6 +3,8 @@ return [
     //new
     'category_image' => "صوره القسم",
     'offers_cover' => "غلاف العروض",
+    'mazad_times' => "أوقات المزايدة",
+    'day_num' => "عدد الايام",
 
 
 
