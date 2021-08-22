@@ -28,7 +28,7 @@
         <ul class="navbar-item theme-brand flex-row  text-center">
             <li class="nav-item theme-logo">
                 <a href="/admin-panel">
-                    <img
+                    <img style="height: 55px;"
                         src="{{image_cloudinary_url()}}<?=Auth::user()->custom['setting']['logo']?>"
                         class="navbar-logo" alt="logo">
                 </a>

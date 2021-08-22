@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Product_mazad;
 use App\SubCategory;
 use App\SubTwoCategory;
 use Illuminate\Http\Request;
@@ -25,6 +26,19 @@ class HomeController extends Controller
     public function __construct()
     {
         $this->middleware('auth:api', ['except' => ['balance_packages', 'gethome', 'getHomeAds', 'check_ad', 'main_ad']]);
+        $expired = Product::where('status', 1)->whereDate('expiry_date', '<', Carbon::now())->get();
+        foreach ($expired as $row) {
+            $product = Product::find($row->id);
+            $product->status = 2;
+            $product->re_post = '0';
+            $product->save();
+
+            $max_price = Product_mazad::where('product_id', $row->id)->orderBy('price', 'desc')->first();
+            if($max_price){
+                $max_price->status = 'winner';
+                $max_price->save();
+            }
+        }
     }
 
     public function gethome(Request $request)

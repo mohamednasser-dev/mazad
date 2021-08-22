@@ -39,7 +39,6 @@ class ProductController extends Controller
         $this->middleware('auth:api', ['except' => ['get_mazad_times', 'ad_owner_info', 'current_ads', 'ended_ads', 'max_min_price', 'filter', 'offer_ads', 'republish_ad', 'areas', 'cities', 'third_step_excute_pay', 'save_third_step_with_money', 'update_ad', 'select_ad_data', 'delete_my_ad', 'save_third_
         step', 'save_second_step', 'save_first_step', 'make_mazad', 'getdetails', 'last_seen', 'getoffers', 'getproducts', 'getsearch', 'getFeatureOffers']]);
         //        --------------------------------------------- begin scheduled functions --------------------------------------------------------
-
         $expired = Product::where('status', 1)->whereDate('expiry_date', '<', Carbon::now())->get();
         foreach ($expired as $row) {
             $product = Product::find($row->id);
@@ -48,58 +47,11 @@ class ProductController extends Controller
             $product->save();
 
             $max_price = Product_mazad::where('product_id', $row->id)->orderBy('price', 'desc')->first();
-            $max_price->status = 'winner';
-            $max_price->save();
-        }
-
-        $not_special = Product::where('status', 1)->where('is_special', '1')->whereDate('expire_special_date', '<', Carbon::now())->get();
-        foreach ($not_special as $row) {
-            $product_special = Product::find($row->id);
-            $product_special->is_special = '0';
-            $product_special->save();
-        }
-        $mytime = Carbon::now();
-        $today = Carbon::parse($mytime->toDateTimeString())->format('Y-m-d H:i');
-        $re_post_ad = Product::where('status', 1)->where('re_post', '1')->whereDate('re_post_date', '<', Carbon::now())->get();
-        foreach ($re_post_ad as $row) {
-
-            $product_re_post = Product::find($row->id);
-            $product_re_post->created_at = Carbon::now();
-            // to generate new next repost date ...
-            $re_post = Plan_details::where('plan_id', $row->plan_id)->where('type', 're_post')->first();
-            $final_pin_date = Carbon::createFromFormat('Y-m-d H:i', $today);
-            $final_expire_re_post_date = $final_pin_date->addDays($re_post->expire_days);
-
-            $product_re_post->re_post_date = $final_expire_re_post_date;
-            $product_re_post->save();
-        }
-
-        $pin_ad = Product::where('status', 1)->where('pin', '1')->whereDate('expire_pin_date', '<', Carbon::now())->get();
-        foreach ($pin_ad as $row) {
-            $product_pined = Product::find($row->id);
-            $product_pined->pin = '0';
-            $product_pined->save();
-        }
-
-        $pin_ad = Setting::where('id', 1)->whereDate('free_loop_date', '<', Carbon::now())->first();
-        if ($pin_ad != null) {
-            if ($pin_ad->is_loop_free_balance == 'y') {
-                $all_users = User::where('active', 1)->get();
-                foreach ($all_users as $row) {
-                    $user = User::find($row->id);
-                    $user->my_wallet = $user->my_wallet + $pin_ad->free_loop_balance;
-                    $user->free_balance = $user->free_balance + $pin_ad->free_loop_balance;
-                    $user->save();
-                }
-                $final_pin_date = Carbon::createFromFormat('Y-m-d H:i', $today);
-                $final_free_loop_date = $final_pin_date->addDays($pin_ad->free_loop_period);
-                $pin_ad->free_loop_date = $final_free_loop_date;
-                $pin_ad->save();
+            if($max_price){
+                $max_price->status = 'winner';
+                $max_price->save();
             }
         }
-//        --------------------------------------------- end scheduled functions --------------------------------------------------------
-
-
     }
 
     public function create(Request $request)
@@ -265,7 +217,7 @@ class ProductController extends Controller
             }
         }
 
-        $data->remaining_hours = Carbon::now()->diffInHours($data->expiry_date, false);
+//        $data->remaining_hours = Carbon::now()->diffInHours($data->expiry_date, false);
         if ($user) {
             $favorite = Favorite::where('user_id', $user->id)->where('product_id', $data->id)->first();
             if ($favorite) {

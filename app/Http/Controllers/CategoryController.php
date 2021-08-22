@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Categories_ad;
 use App\Participant;
+use App\Product_mazad;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use App\Category_option_value;
@@ -26,6 +27,19 @@ class CategoryController extends Controller
     public function __construct()
     {
         $this->middleware('auth:api', ['except' => ['getSubTwoCategoryOptions', 'getSubCategoryOptions', 'show_six_cat', 'getCategoryOptions', 'show_five_cat', 'show_four_cat', 'show_third_cat', 'show_second_cat', 'show_first_cat', 'getcategories', 'getAdSubCategories', 'get_sub_categories_level2', 'get_sub_categories_level3', 'get_sub_categories_level4', 'get_sub_categories_level5', 'getproducts']]);
+        $expired = Product::where('status', 1)->whereDate('expiry_date', '<', Carbon::now())->get();
+        foreach ($expired as $row) {
+            $product = Product::find($row->id);
+            $product->status = 2;
+            $product->re_post = '0';
+            $product->save();
+
+            $max_price = Product_mazad::where('product_id', $row->id)->orderBy('price', 'desc')->first();
+            if($max_price){
+                $max_price->status = 'winner';
+                $max_price->save();
+            }
+        }
     }
 
     public function getcategories(Request $request)
