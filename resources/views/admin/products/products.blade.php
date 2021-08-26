@@ -30,10 +30,9 @@
                             <th class="text-center">Id</th>
                             <th class="text-center">{{ __('messages.publication_date') }}</th>
                             <th class="text-center">{{ __('messages.product_name') }}</th>
-                            <th class="text-center">{{ __('messages.plan_name') }}</th>
                             <th class="text-center">{{ __('messages.user') }}</th>
                             <th class="text-center">{{ __('messages.archived_or_not') }}</th>
-                            <th class="text-center">{{ __('messages.our_offers') }}</th>
+                            <th class="text-center">{{ __('messages.mazads') }}</th>
 {{--                            <th class="text-center">{{ __('messages.choose_to_you') }}</th>--}}
                             <th class="text-center">{{ __('messages.details') }}</th>
 {{--                            @if(Auth::user()->update_data)--}}
@@ -57,30 +56,16 @@
                                         @endif</td>
                                     <td class="text-center">{{ $product->title }}</td>
                                     <td class="text-center">
-                                        @if($product->plan_id !=null)
-                                            @if(app()->getLocale() == 'ar')
-                                                {{$product->Plan->title_ar}}
-                                            @else
-                                                {{$product->Plan->title_en}}
-                                            @endif
-                                        @endif
-                                    </td>
-                                    <td class="text-center">{{ $product->status == 1 ? __('messages.published') : __('messages.archived') }}</td>
-                                    <td class="text-center">
                                         <a href="{{ route('users.details', $product->user->id) }}" target="_blank">
                                             {{ $product->user->name }}
                                         </a>
                                     </td>
+                                    <td class="text-center">{{ $product->status == 1 ? __('messages.published') : __('messages.archived') }}</td>
+
                                     <td class="text-center blue-color">
-                                        @if($product->offer == 1 )
-                                            <a href="{{route('products.make_offer',$product->id)}}" class="btn btn-danger  mb-2 mr-2 rounded-circle" title="" data-original-title="Tooltip using BUTTON tag">
-                                                <i class="far fa-heart"></i>
-                                            </a>
-                                        @else
-                                            <a href="{{route('products.make_offer',$product->id)}}" class="btn btn-dark  mb-2 mr-2 rounded-circle" title="" data-original-title="Tooltip using BUTTON tag">
-                                                <i class="far fa-heart"></i>
-                                            </a>
-                                        @endif
+                                        <a href="{{route('products.mzadat',$product->id)}}" class="btn btn-dark  mb-2 mr-2 rounded-circle" title="" data-original-title="Tooltip using BUTTON tag">
+                                            <i class="far fa-paper-plane"></i>
+                                        </a>
                                     </td>
 {{--                                    <td class="text-center">--}}
 {{--                                        @if($product->choose_it == 1 )--}}

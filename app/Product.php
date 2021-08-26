@@ -93,12 +93,13 @@ class Product extends Model
 
     public function getPriceAttribute($price)
     {
-        $max_price = Product_mazad::where('product_id',$this->id)->get()->max('price');
-        if($max_price == 0){
+        $sum_price = Product_mazad::where('product_id',$this->id)->get()->sum('price');
+        if($sum_price == 0){
             return number_format((float)( $price), 3);
         }else{
-            $max_price  = number_format((float)( $max_price), 3);
-            return $max_price;
+            $total_price = $sum_price + $price ;
+            $final_price  = number_format((float)( $total_price), 3);
+            return $final_price;
         }
     }
 

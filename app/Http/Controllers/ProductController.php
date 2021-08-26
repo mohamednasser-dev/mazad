@@ -46,7 +46,7 @@ class ProductController extends Controller
             $product->re_post = '0';
             $product->save();
 
-            $max_price = Product_mazad::where('product_id', $row->id)->orderBy('price', 'desc')->first();
+            $max_price = Product_mazad::where('product_id', $row->id)->orderBy('created_at', 'desc')->first();
             if($max_price){
                 $max_price->status = 'winner';
                 $max_price->save();
@@ -162,7 +162,7 @@ class ProductController extends Controller
         }
         $product = Product::find($request->product_id);
         if ($product->min_price <= $request->price) {
-            try {
+//            try {
                 $user = auth()->user();
                 if ($product->user_id != $user->id) {
                     $data['user_id'] = $user->id;
@@ -173,11 +173,10 @@ class ProductController extends Controller
                     $response = APIHelpers::createApiResponse(true, 406, 'It is not possible for the auctioneer to bid', 'غير ممكن لصاحب المزاد ان يزايد', null, $lang);
                     return response()->json($response, 406);
                 }
-            } catch (Exception $exception) {
-                $response = APIHelpers::createApiResponse(true, 406, 'you have make mazad befor', 'لقد تم المزايدة من قبل', null, $lang);
-                return response()->json($response, 406);
-            }
-
+//            } catch (Exception $exception) {
+//                $response = APIHelpers::createApiResponse(true, 406, 'you have make mazad befor', 'لقد تم المزايدة من قبل', null, $lang);
+//                return response()->json($response, 406);
+//            }
         } else {
             $response = APIHelpers::createApiResponse(true, 406, 'price entered is low than min price', 'السعر المدخل اقل من الحد الادنى للمزايدة', null, $lang);
             return response()->json($response, 406);

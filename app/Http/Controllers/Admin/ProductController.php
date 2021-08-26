@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Product_mazad;
 use JD\Cloudder\Facades\Cloudder;
 use App\Category_option_value;
 use Illuminate\Http\Request;
@@ -36,6 +37,11 @@ class ProductController extends AdminController
         $data['offer_image_en'] = Setting::where('id', 1)->first()->offer_image_en;
         $data['products'] = Product::where('offer', 1)->where('deleted', 0)->orderBy('id', 'desc')->get();
         return view('admin.products.offers', ['data' => $data]);
+    }
+    public function mzadat($id)
+    {
+        $data = Product_mazad::where('product_id',$id)->orderBy('created_at', 'desc')->get();
+        return view('admin.products.mzadat', compact('data'));
     }
 
     public function chooses()
