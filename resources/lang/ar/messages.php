@@ -8,7 +8,9 @@ return [
     'mazads' => "المزايدات",
     'price_mazad' => "سعر المزايدة",
     'winner' => "رابح",
-    'new' => "جديد",
+    'forum' => "المنتدى",
+    'show_forum' => "عرض المنتدى",
+    'forum_categories' => "اقسام المنتدى",
 
 
 
