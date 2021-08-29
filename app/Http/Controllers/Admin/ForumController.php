@@ -7,6 +7,7 @@ use App\City;
 use App\Forum;
 use App\Forum_category;
 use Illuminate\Http\Request;
+use JD\Cloudder\Facades\Cloudder;
 
 class ForumController extends AdminController
 {
@@ -51,6 +52,16 @@ class ForumController extends AdminController
                 'city_id' => 'required',
                 'cat_id' => 'required'
             ]);
+
+            if($request->file('image')){
+                $offer_name = $request->file('image')->getRealPath();
+                Cloudder::upload($offer_name, null);
+                $imagereturned = Cloudder::getResult();
+                $image_id = $imagereturned['public_id'];
+                $image_format = $imagereturned['format'];
+                $image_new_name = $image_id.'.'.$image_format;
+                $data['image'] = $image_new_name;
+            }
         Forum::create($data);
         session()->flash('success', trans('messages.added_s'));
         return redirect( route('forums.index'));
@@ -76,7 +87,9 @@ class ForumController extends AdminController
     public function edit($id)
     {
         $data = Forum::where('id',$id)->first();
-        return view('admin.forums.edit',compact('data'));
+        $categories = Forum_category::where('deleted','0')->orderBy('id','desc')->get();
+        $cities = City::where('deleted','0')->orderBy('id','desc')->get();
+        return view('admin.forums.edit',compact('data','categories','cities'));
     }
 
     /**
@@ -88,16 +101,26 @@ class ForumController extends AdminController
      */
     public function update(Request $request, $id)
     {
-
         $data = $this->validate(\request(),
             [
-                'name_ar' => 'required',
-                'name_en' => 'required',
+                'image' => '',
+                'title_ar' => 'required',
+                'title_en' => 'required',
                 'desc_ar' => 'required',
                 'desc_en' => 'required',
-                'price' => 'required',
-                'amount' => 'required'
+                'city_id' => 'required',
+                'cat_id' => 'required'
             ]);
+
+        if($request->file('image')){
+            $offer_name = $request->file('image')->getRealPath();
+            Cloudder::upload($offer_name, null);
+            $imagereturned = Cloudder::getResult();
+            $image_id = $imagereturned['public_id'];
+            $image_format = $imagereturned['format'];
+            $image_new_name = $image_id.'.'.$image_format;
+            $data['image'] = $image_new_name;
+        }
         Forum::where('id',$id)->update($data);
         session()->flash('success', trans('messages.updated_s'));
         return redirect( route('forums.index'));
@@ -111,7 +134,7 @@ class ForumController extends AdminController
      */
     public function destroy($id)
     {
-        Forum::where('id',$id)->delete();
+        Forum::where('id',$id)->update(['deleted'=>'1']);
         session()->flash('success', trans('messages.deleted_s'));
         return back();
     }

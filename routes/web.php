@@ -102,6 +102,9 @@ Route::group(['middleware'=>'language','prefix' => "admin-panel",'namespace' => 
     Route::get('/mazad_times/delete/{id}' , 'MazadTimesController@destroy')->name('mazad_times.delete');
 
     Route::resource('forums' , 'ForumController');
+    Route::get('/forums/destroy/{id}' , 'ForumController@destroy')->name('forums.delete');
+    Route::post('/forums/update_new/{id}' , 'ForumController@update')->name('forums.update_new');
+
 
     Route::resource('forum_categories' , 'ForumCategoriesController');
     Route::post('/forum_categories/update/{id}' , 'ForumCategoriesController@update')->name('forum_categories.update');

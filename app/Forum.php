@@ -11,6 +11,10 @@ class Forum extends Model
     public function City() {
         return $this->belongsTo('App\City', 'city_id');
     }
+    public function City_data() {
+
+        return $this->belongsTo('App\City', 'city_id')->select('id','title_'.session('lang_api').' as title');
+    }
     public function Category() {
         return $this->belongsTo('App\Forum_category', 'cat_id');
     }

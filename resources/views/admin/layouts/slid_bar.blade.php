@@ -162,31 +162,26 @@
                         </ul>
                     </li>
                 @endif
+                    <li class="menu forum_categories">
+                        <a href="{{route('forum_categories.index')}}" class="dropdown-toggle first-link">
+                            <div class="">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-book"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                                <span>{{ __('messages.forum_categories') }}</span>
+                            </div>
+                        </a>
+                    </li>
                 @if(in_array(14 , Auth::user()->custom['admin_permission']))
-                        <li class="menu forums Forum_categories">
-                            <a href="#ads" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle first-link">
+
+                        <li class="menu forums">
+                            <a href="{{route('forums.index')}}" class="dropdown-toggle first-link">
                                 <div class="">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-book"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-zap"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                                     <span>{{ __('messages.forum') }}</span>
                                 </div>
-                                <div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                         stroke-linejoin="round" class="feather feather-chevron-right">
-                                        <polyline points="9 18 15 12 9 6"></polyline>
-                                    </svg>
-                                </div>
                             </a>
-                            <ul class="collapse submenu list-unstyled" id="ads" data-parent="#accordionExample">
-                                <li class="Forum_categories">
-                                    <a href="{{route('forum_categories.index')}}">{{ __('messages.forum_categories') }}</a>
-                                </li>
-                                <li class="">
-                                    <a href="{{route('forums.index')}}" @if(Route::current()->getName() == 'forums.index') style="color: #1b55e2; font-weight: 600;"  @endif >{{ __('messages.show_forum') }}</a>
-                                </li>
-                            </ul>
                         </li>
                 @endif
+
 
 {{--                @if(in_array(17 , Auth::user()->custom['admin_permission']))--}}
 {{--                    <li class="menu payments">--}}
