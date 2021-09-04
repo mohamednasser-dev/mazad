@@ -111,6 +111,11 @@ use Illuminate\Http\Request;
     // get home data
     Route::get('/home-ads/{lang}/{v}' , 'HomeController@getHomeAds')->middleware('checkguest');
 
+    //forum ...
+    Route::get('/all_forum/{lang}/{v}' , 'ForumController@all_forum')->middleware('checkguest');
+    Route::get('/forum_by_cat/{cat_id}/{lang}/{v}' , 'ForumController@forum_by_cat')->middleware('checkguest');
+    Route::get('/Forum_details/{forum_id}/{lang}/{v}' , 'ForumController@Forum_details')->middleware('checkguest');
+
     // send contact us message
     Route::post('/contactus/{lang}/{v}' , 'ContactUsController@SendMessage')->middleware('checkguest');
 

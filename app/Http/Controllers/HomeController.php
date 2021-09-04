@@ -34,7 +34,7 @@ class HomeController extends Controller
             $product->re_post = '0';
             $product->save();
 
-            $max_price = Product_mazad::where('product_id', $row->id)->orderBy('price', 'desc')->first();
+            $max_price = Product_mazad::where('product_id', $row->id)->orderBy('created_at', 'desc')->first();
             if($max_price){
                 $max_price->status = 'winner';
                 $max_price->save();
@@ -157,8 +157,9 @@ class HomeController extends Controller
         $data['categories'] = $categories;
         $forum = [];
 
-        $forum = Forum::select('id', 'image', 'title_'.$lang.' as title','desc_'.$lang.' as description','city_id')
+        $forum = Forum::select('id', 'image', 'title_'.$lang.' as title','desc_'.$lang.' as description','city_id','created_at')
                 ->with('City_data')
+                ->with('Category_data')
                 ->where('deleted', '0')
                 ->orderBy('id', 'desc')
                 ->limit(5)

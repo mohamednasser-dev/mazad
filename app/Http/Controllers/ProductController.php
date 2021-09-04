@@ -1396,8 +1396,9 @@ class ProductController extends Controller
             'share_location' => 'required',
             'latitude' => 'required',
             'longitude' => 'required',
-            'options' => '',
             'price' => 'required|numeric',
+            'min_price' => 'required|numeric',
+            'day_count_id' => 'required',
             'description' => '',
             'main_image' => '',
             'images' => ''
@@ -1435,29 +1436,7 @@ class ProductController extends Controller
                 }
             }
             unset($input['images']);
-            unset($input['options']);
             $updated = Product::where('id', $id)->update($input);
-            if ($request->options != null) {
-                Product_feature::where('product_id', $id)->delete();
-                foreach ($request->options as $key => $option) {
-                    if ($option['option_value'] != null) {
-                        if (is_numeric($option['option_value'])) {
-                            $option_values = Category_option_value::where('id', $option['option_value'])->first();
-                            if ($option_values != null) {
-                                $feature_data['type'] = 'option';
-                            } else {
-                                $feature_data['type'] = 'manual';
-                            }
-                        } else {
-                            $feature_data['type'] = 'manual';
-                        }
-                        $feature_data['product_id'] = $id;
-                        $feature_data['target_id'] = $option['option_value'];
-                        $feature_data['option_id'] = $option['option_id'];
-                        Product_feature::create($feature_data);
-                    }
-                }
-            }
             if ($updated == 1) {
                 $final_data['status'] = true;
                 $response = APIHelpers::createApiResponse(false, 200, 'updated successfuly', 'تم التعديل بنجاح', $final_data, $request->lang);

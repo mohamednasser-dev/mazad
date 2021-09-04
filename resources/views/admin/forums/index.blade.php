@@ -46,7 +46,7 @@
                                 <td class="text-center blue-color">{{ app()->getLocale() == 'en' ? $row->desc_en : $row->desc_ar }}</td>
                                 <td class="text-center">{{ app()->getLocale() == 'en' ? $row->City->title_en : $row->City->title_ar }}</td>
                                 <td class="text-center">{{ app()->getLocale() == 'en' ? $row->Category->title_en : $row->Category->title_ar }}</td>
-                                <td class="text-center">{{ $row->created_at->format('Y-m-d') }}</td>
+                                <td class="text-center">{{ $row->created_at }}</td>
                                 @if(Auth::user()->update_data)
                                     <td class="text-center blue-color"><a
                                             href="{{ route('forums.edit', $row->id) }}"><i
