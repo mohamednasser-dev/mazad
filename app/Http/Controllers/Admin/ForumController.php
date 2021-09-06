@@ -19,7 +19,7 @@ class ForumController extends AdminController
     public function index()
     {
         $data = Forum::where('deleted','0')->orderBy('id','desc')->get();
-        return view('admin.Forums.index',compact('data'));
+        return view('admin.forums.index',compact('data'));
     }
 
     /**
