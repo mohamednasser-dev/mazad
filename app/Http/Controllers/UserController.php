@@ -556,10 +556,9 @@ class UserController extends Controller
             if ($type == 'current_ads' || $type == 'ended_ads') {
                 $data = Product_mazad::with('Product')->where('user_id', $user->id)->wherehas($type)
                     ->get()->unique('product_id')->map(function ($entire_data) use ($user){
-                        $bid = Product_mazad::select('price')->where('product_id',$entire_data->product_id)->where('user_id',$user->id)->orderBy('created_at','desc')->first();
-                        $all_product_bids = Product_mazad::select('price')->where('product_id',$entire_data->product_id)->orderBy('created_at','desc')->first();
+                        $bid = Product_mazad::select('price')->where('product_id',$entire_data->product_id)->where('user_id',$user->id)->orderBy('price','desc')->first();
                         $entire_data->my_last_bid = number_format($bid->price, 3);
-                        $entire_data->highest_bid = number_format($all_product_bids->price, 3);
+                        $entire_data->highest_bid = number_format($entire_data->Product->price, 3);
                         $favorite = Favorite::where('user_id', $user->id)->where('product_id', $entire_data->id)->first();
                         if ($favorite) {
                             $entire_data->favorite = true;
@@ -572,6 +571,9 @@ class UserController extends Controller
                 $data = Product_mazad::with('Product')->where('user_id', $user->id)
                     ->where('status', 'winner')
                     ->get()->map(function ($entire_data) use ($user){
+                        $bid = Product_mazad::select('price')->where('product_id',$entire_data->product_id)->where('user_id',$user->id)->orderBy('price','desc')->first();
+                        $entire_data->my_last_bid = number_format($bid->price, 3);
+                        $entire_data->highest_bid = number_format($entire_data->Product->price, 3);
                         $favorite = Favorite::where('user_id', $user->id)->where('product_id', $entire_data->product_id)->first();
                         if ($favorite) {
                             $entire_data->favorite = true;
