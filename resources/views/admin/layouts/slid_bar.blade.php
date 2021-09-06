@@ -153,9 +153,9 @@
                             <li class="show">
                                 <a href="/admin-panel/ads/show">{{ __('messages.main_ads_second') }}</a>
                             </li>
-                            <li class="show">
-                                <a href="/admin-panel/categories_ads">{{ __('messages.categories_ads') }}</a>
-                            </li>
+{{--                            <li class="show">--}}
+{{--                                <a href="/admin-panel/categories_ads">{{ __('messages.categories_ads') }}</a>--}}
+{{--                            </li>--}}
                             <li class="">
                                 <a href="{{route('main_ads.index')}}" @if(Route::current()->getName() == 'main_ads.index') style="color: #1b55e2; font-weight: 600;"  @endif >{{ __('messages.main_ads') }}</a>
                             </li>
