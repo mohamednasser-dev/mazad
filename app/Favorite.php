@@ -18,6 +18,24 @@ class Favorite extends Model
     }
 
     public function Category() {
-        return $this->belongsTo('App\Category', 'product_id');
+        return $this->belongsTo('App\Category', 'product_id')->where('deleted',0)->select('id','title_'.session('lang').' as title');
     }
+
+    public function Sub_category() {
+        return $this->belongsTo('App\SubCategory', 'product_id')->where('deleted',0)->select('id','title_'.session('lang').' as title');
+    }
+
+    public function Sub_twoCategory() {
+        return $this->belongsTo('App\SubTwoCategory', 'product_id')->where('deleted',0)->select('id','title_'.session('lang').' as title');
+    }
+    public function Sub_threeCategory() {
+        return $this->belongsTo('App\SubThreeCategory', 'product_id')->where('deleted',0)->select('id','title_'.session('lang').' as title');
+    }
+    public function Sub_fourCategory() {
+        return $this->belongsTo('App\SubFourCategory', 'product_id')->where('deleted',0)->select('id','title_'.session('lang').' as title');
+    }
+    public function Sub_fiveCategory() {
+        return $this->belongsTo('App\SubFiveCategory', 'product_id')->where('deleted','0')->select('id','title_'.session('lang').' as title');
+    }
+
 }

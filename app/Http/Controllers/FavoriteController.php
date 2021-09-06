@@ -2,7 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Category;
 use App\Participant;
+use App\SubCategory;
+use App\SubFiveCategory;
+use App\SubFourCategory;
+use App\SubThreeCategory;
+use App\SubTwoCategory;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Helpers\APIHelpers;
@@ -73,16 +80,32 @@ class FavoriteController extends Controller
             return response()->json($response, 406);
         }
 
-        $validator = Validator::make($request->all(), [
-            'product_id' => 'required',
-        ]);
+        if ($request->type == 'product') {
+            $validator = Validator::make($request->all(), [
+                'product_id' => 'required|exists:products,id',
+                'type' => 'required|in:product,category'
+            ]);
+
+        } else {
+            $validator = Validator::make($request->all(), [
+                'product_id' => 'required|exists:categories,id',
+                'type' => 'required|in:product,category',
+                'category_type' => 'required'
+            ]);
+
+        }
 
         if ($validator->fails()) {
             $response = APIHelpers::createApiResponse(true, 406, 'بعض الحقول مفقودة', 'بعض الحقول مفقودة', null, $request->lang);
             return response()->json($response, 406);
         }
+        if ($request->type == 'product') {
+            $favorite = Favorite::where('product_id', $request->product_id)->where('type', 'product')->where('user_id', $user->id)->first();
 
-        $favorite = Favorite::where('product_id', $request->product_id)->where('user_id', $user->id)->first();
+        } else {
+            $favorite = Favorite::where('product_id', $request->product_id)->where('type', 'category')->where('category_type', $request->category_type)->where('user_id', $user->id)->first();
+
+        }
         if ($favorite) {
             $favorite->delete();
             $response = APIHelpers::createApiResponse(false, 200, 'Deteted ', 'تم الحذف', (object)[], $request->lang);
@@ -97,6 +120,7 @@ class FavoriteController extends Controller
     {
         $user = auth()->user();
         $lang = $request->lang;
+        Session::put('lang', $lang);
         if ($user->active == 0) {
             $response = APIHelpers::createApiResponse(true, 406, 'تم حظر حسابك', 'تم حظر حسابك', null, $request->lang);
             return response()->json($response, 406);
@@ -131,14 +155,57 @@ class FavoriteController extends Controller
                     }
                 }
             } elseif ($type == 'category') {
-                $products = Favorite::select('id', 'product_id', 'user_id')
+                $products = Favorite::select('id', 'product_id', 'user_id','type','category_type')
                     ->where('type', $type)
                     ->where('user_id', $user->id)
                     ->orderBy('id', 'desc')
                     ->simplePaginate(12);
 
                 for ($i = 0; $i < count($products); $i++) {
-                        $products[$i]['favorite'] = true;
+                    if($products[$i]['category_type'] == '0'){
+                        $category = Category::where('id',$products[$i]['product_id'])->first();
+                        if($lang == 'ar'){
+                            $products[$i]['title'] = $category->title_ar;
+                        }else{
+                            $products[$i]['title'] = $category->title_en;
+                        }
+                    }elseif($products[$i]['category_type'] == '1'){
+                        $category = SubCategory::where('id',$products[$i]['product_id'])->first();
+                        if($lang == 'ar'){
+                            $products[$i]['title'] = $category->title_ar;
+                        }else{
+                            $products[$i]['title'] = $category->title_en;
+                        }
+                    }elseif($products[$i]['category_type'] == '2'){
+                        $category = SubTwoCategory::where('id',$products[$i]['product_id'])->first();
+                        if($lang == 'ar'){
+                            $products[$i]['title'] = $category->title_ar;
+                        }else{
+                            $products[$i]['title'] = $category->title_en;
+                        }
+                    }elseif($products[$i]['category_type'] == '3'){
+                        $category = SubThreeCategory::where('id',$products[$i]['product_id'])->first();
+                        if($lang == 'ar'){
+                            $products[$i]['title'] = $category->title_ar;
+                        }else{
+                            $products[$i]['title'] = $category->title_en;
+                        }
+                    }elseif($products[$i]['category_type'] == '4'){
+                        $category = SubFourCategory::where('id',$products[$i]['product_id'])->first();
+                        if($lang == 'ar'){
+                            $products[$i]['title'] = $category->title_ar;
+                        }else{
+                            $products[$i]['title'] = $category->title_en;
+                        }
+                    }elseif($products[$i]['category_type'] == '5'){
+                        $category = SubFiveCategory::where('id',$products[$i]['product_id'])->first();
+                        if($lang == 'ar'){
+                            $products[$i]['title'] = $category->title_ar;
+                        }else{
+                            $products[$i]['title'] = $category->title_en;
+                        }
+                    }
+                    $products[$i]['favorite'] = true;
 
                 }
             }
