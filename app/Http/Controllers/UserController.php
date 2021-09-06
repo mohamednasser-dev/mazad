@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Product_mazad;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use JD\Cloudder\Facades\Cloudder;
@@ -24,6 +25,19 @@ class UserController extends Controller
     public function __construct()
     {
         $this->middleware('auth:api', ['except' => ['my_bids', 'pay_sucess', 'pay_error', 'excute_pay', 'my_account', 'my_balance', 'resetforgettenpassword', 'checkphoneexistance', 'checkphoneexistanceandroid', 'getownerprofile']]);
+        $expired = Product::where('status', 1)->whereDate('expiry_date', '<', Carbon::now())->get();
+        foreach ($expired as $row) {
+            $product = Product::find($row->id);
+            $product->status = 2;
+            $product->re_post = '0';
+            $product->save();
+
+            $max_price = Product_mazad::where('product_id', $row->id)->orderBy('created_at', 'desc')->first();
+            if($max_price){
+                $max_price->status = 'winner';
+                $max_price->save();
+            }
+        }
     }
 
     public function getprofile(Request $request)
@@ -540,8 +554,12 @@ class UserController extends Controller
         $user = auth()->user();
         if ($user) {
             if ($type == 'current_ads' || $type == 'ended_ads') {
-                $data = Product_mazad::where('user_id', $user->id)->wherehas($type)
-                    ->get()->map(function ($entire_data) use ($user){
+                $data = Product_mazad::with('Product')->where('user_id', $user->id)->wherehas($type)
+                    ->get()->unique('product_id')->map(function ($entire_data) use ($user){
+                        $bid = Product_mazad::select('price')->where('product_id',$entire_data->product_id)->where('user_id',$user->id)->orderBy('created_at','desc')->first();
+                        $all_product_bids = Product_mazad::select('price')->where('product_id',$entire_data->product_id)->orderBy('created_at','desc')->first();
+                        $entire_data->my_last_bid = number_format($bid->price, 3);
+                        $entire_data->highest_bid = number_format($all_product_bids->price, 3);
                         $favorite = Favorite::where('user_id', $user->id)->where('product_id', $entire_data->id)->first();
                         if ($favorite) {
                             $entire_data->favorite = true;

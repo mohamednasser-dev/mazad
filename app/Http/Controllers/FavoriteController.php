@@ -24,25 +24,45 @@ class FavoriteController extends Controller
             $response = APIHelpers::createApiResponse(true, 406, 'تم حظر حسابك', 'تم حظر حسابك', null, $request->lang);
             return response()->json($response, 406);
         }
-        $validator = Validator::make($request->all(), [
-            'product_id' => 'required',
-        ]);
-        if ($validator->fails()) {
-            $response = APIHelpers::createApiResponse(true, 406, 'بعض الحقول مفقودة', 'بعض الحقول مفقودة', null, $request->lang);
-            return response()->json($response, 406);
-        }
-        $favorite = Favorite::where('product_id', $request->product_id)->where('user_id', $user->id)->first();
-        if ($favorite) {
-            $response = APIHelpers::createApiResponse(true, 406, 'تم إضافه هذا المنتج للمفضله من قبل', 'تم إضافه هذا المنتج للمفضله من قبل', null, $request->lang);
-            return response()->json($response, 406);
+        $input = $request->all();
+        $favorite = [];
+        $favorite_cat = [];
+        if ($request->type == 'product') {
+            $validator = Validator::make($request->all(), [
+                'product_id' => 'required|exists:products,id',
+                'type' => 'required|in:product,category'
+            ]);
+            unset($input['category_type']);
+            $favorite = Favorite::where('product_id', $request->product_id)->where('type', 'product')->where('user_id', $user->id)->first();
+
         } else {
-            $favorite = new Favorite();
-            $favorite->user_id = $user->id;
-            $favorite->product_id = $request->product_id;
-            $favorite->save();
-            $response = APIHelpers::createApiResponse(false, 200, '', '', $favorite, $request->lang);
-            return response()->json($response, 200);
+            $validator = Validator::make($request->all(), [
+                'product_id' => 'required|exists:categories,id',
+                'type' => 'required|in:product,category',
+                'category_type' => 'required'
+            ]);
+            $favorite_cat = Favorite::where('product_id', $request->product_id)->where('type', 'category')->where('category_type', $request->category_type)->where('user_id', $user->id)->first();
+
         }
+        if ($validator->fails()) {
+            $response = APIHelpers::createApiResponse(true, 406, $validator->errors()->first(), $validator->errors()->first(), null, $request->lang);
+            return response()->json($response, 406);
+        }
+        if ($favorite) {
+            $response = APIHelpers::createApiResponse(true, 406, 'تم إضافه هذا المزاد للمفضله من قبل', 'تم إضافه هذا المزاد للمفضله من قبل', null, $request->lang);
+            return response()->json($response, 406);
+        }
+
+        if ($favorite_cat) {
+            $response = APIHelpers::createApiResponse(true, 406, 'تم إضافه هذا القسم للمفضله من قبل', 'تم إضافه هذا القسم للمفضله من قبل', null, $request->lang);
+            return response()->json($response, 406);
+        }
+
+        $input['user_id'] = $user->id;
+        Favorite::create($input);
+        $response = APIHelpers::createApiResponse(false, 200, '', '', $favorite, $request->lang);
+        return response()->json($response, 200);
+
     }
 
     public function removefromfavorites(Request $request)
@@ -73,7 +93,7 @@ class FavoriteController extends Controller
         }
     }
 
-    public function getfavorites(Request $request)
+    public function getfavorites(Request $request, $type)
     {
         $user = auth()->user();
         $lang = $request->lang;
@@ -81,33 +101,48 @@ class FavoriteController extends Controller
             $response = APIHelpers::createApiResponse(true, 406, 'تم حظر حسابك', 'تم حظر حسابك', null, $request->lang);
             return response()->json($response, 406);
         } else {
-            $products = Favorite::select('id', 'product_id', 'user_id')->has('Product')
-                ->with('Product')
-                ->where('user_id', $user->id)
-                ->orderBy('id', 'desc')
-                ->simplePaginate(12);
+            if ($type == 'product') {
+                $products = Favorite::select('id', 'product_id', 'user_id')->has('Product')
+                    ->with('Product')
+                    ->where('type', $type)
+                    ->where('user_id', $user->id)
+                    ->orderBy('id', 'desc')
+                    ->simplePaginate(12);
 
-            for ($i = 0; $i < count($products); $i++) {
-                $products[$i]['Product']->price  = number_format((float)(  $products[$i]['Product']->price ), 3);
-                if ($user) {
-                    $favorite = Favorite::where('user_id', $user->id)->where('product_id', $products[$i]['product_id'])->first();
-                    if ($favorite) {
-                        $products[$i]['Product']->favorite  = true;
-                    } else {
-                        $products[$i]['Product']->favorite = false;
-                    }
+                for ($i = 0; $i < count($products); $i++) {
+                    $products[$i]['Product']->price = number_format((float)($products[$i]['Product']->price), 3);
+                    if ($user) {
+                        $favorite = Favorite::where('user_id', $user->id)->where('product_id', $products[$i]['product_id'])->first();
+                        if ($favorite) {
+                            $products[$i]['Product']->favorite = true;
+                        } else {
+                            $products[$i]['Product']->favorite = false;
+                        }
 
-                    $conversation = Participant::where('ad_product_id', $products[$i]['product_id'])->where('user_id', $user->id)->first();
-                    if ($conversation == null) {
-                        $products[$i]['Product']->conversation_id = 0;
+                        $conversation = Participant::where('ad_product_id', $products[$i]['product_id'])->where('user_id', $user->id)->first();
+                        if ($conversation == null) {
+                            $products[$i]['Product']->conversation_id = 0;
+                        } else {
+                            $products[$i]['Product']->conversation_id = $conversation->conversation_id;
+                        }
                     } else {
-                        $products[$i]['Product']->conversation_id = $conversation->conversation_id;
+                        $products[$i]['favorite'] = false;
+                        $products[$i]['conversation_id'] = 0;
                     }
-                } else {
-                    $products[$i]['favorite'] = false;
-                    $products[$i]['conversation_id'] = 0;
+                }
+            } elseif ($type == 'category') {
+                $products = Favorite::select('id', 'product_id', 'user_id')
+                    ->where('type', $type)
+                    ->where('user_id', $user->id)
+                    ->orderBy('id', 'desc')
+                    ->simplePaginate(12);
+
+                for ($i = 0; $i < count($products); $i++) {
+                        $products[$i]['favorite'] = true;
+
                 }
             }
+
             if (count($products) > 0) {
                 $response = APIHelpers::createApiResponse(false, 200, '', '', $products, $request->lang);
             } else {

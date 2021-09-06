@@ -10,7 +10,7 @@ class Product_mazad extends Model
 
     public function Product() {
         return $this->belongsTo('App\Product', 'product_id')
-            ->select('id','main_image','title','user_id','price','publication_date')->with('user');
+            ->select('id','main_image','title','user_id','price','created_at')->with('user');
     }
 
     public function current_ads() {

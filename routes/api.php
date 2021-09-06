@@ -184,7 +184,7 @@ use Illuminate\Http\Request;
     Route::get('/sellect_notofications/{lang}/{v}' , 'UserController@notifications');
 
     //favorite
-    Route::get('/favorites/{lang}/{v}' , 'FavoriteController@getfavorites');
+    Route::get('/favorites/{type}/{lang}/{v}' , 'FavoriteController@getfavorites');
     Route::post('/favorite/create/{lang}/{v}' , 'FavoriteController@addtofavorites');
     Route::post('/favorite/destroy/{lang}/{v}' , 'FavoriteController@removefromfavorites');
 

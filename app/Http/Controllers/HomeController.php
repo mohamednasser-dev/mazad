@@ -142,6 +142,7 @@ class HomeController extends Controller
             ->where('deleted', 0)
             ->select('id', 'title_'.$lang.' as title')
             ->get()->map(function($data){
+                $data->mazad_count =  Product::where('category_id',$data->id)->where('status',1)->where('publish','Y')->where('deleted',0)->get()->count();
                 foreach ($data->Sub_categories as $key=> $row){
                     $exists_cats = SubTwoCategory::where(function ($q) {
                         $q->has('SubCategories', '>', 0);
