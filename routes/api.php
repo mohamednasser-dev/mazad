@@ -189,8 +189,10 @@ use Illuminate\Http\Request;
     Route::post('/favorite/create/category/{lang}/{v}' , 'FavoriteController@add_category_to_favorites');
     Route::post('/favorite/destroy/{lang}/{v}' , 'FavoriteController@removefromfavorites');
     Route::post('/favorite/destroy/category/{lang}/{v}' , 'FavoriteController@remove_category_from_favorites');
+    Route::get('/favorite/get_cat_products/{cat_id}/{level_num}/{lang}/{v}' , 'FavoriteController@get_cat_products');
 
-    //terms and condition
+
+//terms and condition
     Route::get('/terms/{lang}/{v}' , 'SettingController@terms');
     Route::get('/social_media/{lang}/{v}' , 'SettingController@social_media');
     Route::get('/about_app/{lang}/{v}' , 'SettingController@about_app');

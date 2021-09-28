@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Category;
 use App\Participant;
+use App\Product_view;
 use App\SubCategory;
 use App\SubFiveCategory;
 use App\SubFourCategory;
@@ -230,6 +231,64 @@ class FavoriteController extends Controller
                     $products[$i]['favorite'] = true;
 
                 }
+            }
+
+            if (count($products) > 0) {
+                $response = APIHelpers::createApiResponse(false, 200, '', '', $products, $request->lang);
+            } else {
+                $response = APIHelpers::createApiResponse(false, 200, 'no item favorite to show', 'لا يوجد عناصر للعرض', $products, $request->lang);
+            }
+            return response()->json($response, 200);
+        }
+    }
+
+    public function get_cat_products(Request $request, $cat_id , $level_num)
+    {
+        $user = auth()->user();
+        $lang = $request->lang;
+        Session::put('lang', $lang);
+        if ($user->active == 0) {
+            $response = APIHelpers::createApiResponse(true, 406, 'تم حظر حسابك', 'تم حظر حسابك', null, $request->lang);
+            return response()->json($response, 406);
+        } else {
+            $products = Product::where('status', 1)->where('deleted', 0)->where('publish', 'Y');
+            if ($level_num == 0) {
+                $products = $products->where('category_id', $cat_id);
+            }elseif($level_num == 1) {
+                $products = $products->where('sub_category_id', $cat_id);
+            }elseif($level_num == 2) {
+                $products = $products->where('sub_category_two_id', $cat_id);
+            }elseif($level_num == 3) {
+                $products = $products->where('sub_category_three_id', $cat_id);
+            }elseif($level_num == 4) {
+                $products = $products->where('sub_category_four_id', $cat_id);
+            }elseif($level_num == 5) {
+                $products = $products->where('sub_category_five_id', $cat_id);
+            }
+            $products = $products->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(12);
+            for ($i = 0; $i < count($products); $i++) {
+                $products[$i]['price']= number_format((float)($products[$i]['price']), 3);
+                $views = Product_view::where('product_id', $products[$i]['id'])->get()->count();
+                $products[$i]['views'] = $views;
+                $user = auth()->user();
+                if ($user) {
+                    $favorite = Favorite::where('user_id', $user->id)->where('product_id', $products[$i]['id'])->first();
+                    if ($favorite) {
+                        $products[$i]['favorite'] = true;
+                    } else {
+                        $products[$i]['favorite'] = false;
+                    }
+                    $conversation = Participant::where('ad_product_id', $products[$i]['id'])->where('user_id', $user->id)->first();
+                    if ($conversation == null) {
+                        $products[$i]['conversation_id'] = 0;
+                    } else {
+                        $products[$i]['conversation_id'] = $conversation->conversation_id;
+                    }
+                } else {
+                    $products[$i]['favorite'] = false;
+                    $products[$i]['conversation_id'] = 0;
+                }
+                $products[$i]['time'] = APIHelpers::get_month_day($products[$i]['created_at'], $lang);
             }
 
             if (count($products) > 0) {
