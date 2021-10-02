@@ -190,6 +190,7 @@ use Illuminate\Http\Request;
     Route::post('/favorite/destroy/{lang}/{v}' , 'FavoriteController@removefromfavorites');
     Route::post('/favorite/destroy/category/{lang}/{v}' , 'FavoriteController@remove_category_from_favorites');
     Route::get('/favorite/get_cat_products/{cat_id}/{level_num}/{lang}/{v}' , 'FavoriteController@get_cat_products');
+    Route::get('/favorite/filter_cat_products/{cat_id}/{level_num}/{order}/{lang}/{v}' , 'FavoriteController@filter_cat_products');
 
 
 //terms and condition
