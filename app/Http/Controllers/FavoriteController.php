@@ -149,7 +149,7 @@ class FavoriteController extends Controller
             return response()->json($response, 406);
         } else {
             if ($type == 'product') {
-                $products = Favorite::select('id', 'product_id', 'user_id')->has('Product')
+                $products = Favorite::select('id', 'product_id', 'user_id')
                     ->with('Product')
                     ->where('type', $type)
                     ->where('user_id', $user->id)
