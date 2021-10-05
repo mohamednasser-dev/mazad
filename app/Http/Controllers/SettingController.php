@@ -35,7 +35,7 @@ class SettingController extends Controller
         return response()->json($response , 200);
 	}
 	public function social_media(Request $request){
-        $data = Setting::where('id',1)->select('id','facebook','twitter','snap_chat')->get();
+        $data = Setting::where('id',1)->select('id','facebook','instegram','phone')->get();
 
         $response = APIHelpers::createApiResponse(false , 200 , '' , '' , $data , $request->lang);
         return response()->json($response , 200);
