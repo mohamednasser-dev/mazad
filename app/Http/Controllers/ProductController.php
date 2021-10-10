@@ -188,6 +188,7 @@ class ProductController extends Controller
         $user = auth()->user();
         $lang = $request->lang;
         Session::put('lang', $lang);
+        Session::put('price_float', 'true');
         $data = Product::with('Product_user')->with('category_name')
             ->select('id', 'title', 'main_image', 'description', 'expiry_date', 'day_count_id',
                 'price', 'min_price', 'type', 'publication_date as date', 'user_id', 'category_id', 'latitude', 'longitude',
