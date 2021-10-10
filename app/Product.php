@@ -108,8 +108,12 @@ class Product extends Model
 
     public function getMinPriceAttribute($min_price)
     {
-        $min_price  = number_format((float)( $min_price), 3);
-        return $min_price;
+        if(session('price_float') == 'true' ){
+            return  $min_price;
+        }else {
+            $min_price = number_format((float)($min_price), 3);
+            return $min_price;
+        }
     }
 
     public function getRemainHoursAttribute()
