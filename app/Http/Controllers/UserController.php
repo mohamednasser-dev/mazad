@@ -32,7 +32,7 @@ class UserController extends Controller
             $product->re_post = '0';
             $product->save();
 
-            $max_price = Product_mazad::where('product_id', $row->id)->orderBy('price', 'desc')->first();
+            $max_price = Product_mazad::where('product_id', $row->id)->orderBy('created_at', 'desc')->first();
             if($max_price){
                 $max_price->status = 'winner';
                 $max_price->save();
@@ -573,7 +573,7 @@ class UserController extends Controller
                     ->get()->map(function ($entire_data) use ($user){
                         $bid = Product_mazad::select('price')->where('product_id',$entire_data->product_id)->where('user_id',$user->id)->orderBy('price','desc')->first();
                         $entire_data->my_last_bid = number_format($bid->price, 3);
-                        $entire_data->highest_bid = number_format($entire_data->Product->price, 3);
+                        $entire_data->highest_bid = $entire_data->Product->price;
                         $favorite = Favorite::where('user_id', $user->id)->where('product_id', $entire_data->product_id)->first();
                         if ($favorite) {
                             $entire_data->favorite = true;

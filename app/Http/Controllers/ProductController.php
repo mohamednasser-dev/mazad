@@ -46,7 +46,7 @@ class ProductController extends Controller
             $product->re_post = '0';
             $product->save();
 
-            $max_price = Product_mazad::where('product_id', $row->id)->orderBy('price', 'desc')->first();
+            $max_price = Product_mazad::where('product_id', $row->id)->orderBy('created_at', 'desc')->first();
             if($max_price){
                 $max_price->status = 'winner';
                 $max_price->save();
