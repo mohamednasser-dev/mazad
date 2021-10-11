@@ -93,28 +93,27 @@ class Product extends Model
 
     public function getPriceAttribute($price)
     {
-//        $sum_price = Product_mazad::where('product_id',$this->id)->get()->sum('price');
-//        if($sum_price == 0){
-//            return number_format((float)( $price), 3);
-//        }else{
-//            $total_price = $sum_price + $price ;
-//            $final_price  = number_format((float)( $total_price), 3);
-//            return $final_price;
-//        }
-
-
-        $sum_price = Product_mazad::where('product_id',$this->id)->orderBy('price','desc')->first();
-        if($sum_price){
-            return number_format((float)( $sum_price->price), 3);
+        if(session('price_float') == 'true' ){
+                return  $price;
         }else{
-            return number_format((float)( $price), 3);
+            $sum_price = Product_mazad::where('product_id',$this->id)->orderBy('price','desc')->first();
+            if($sum_price){
+                return number_format((float)( $sum_price->price), 3);
+            }else{
+                return number_format((float)( $price), 3);
+            }
         }
+
     }
 
     public function getMinPriceAttribute($min_price)
     {
-        $min_price  = number_format((float)( $min_price), 3);
-        return $min_price;
+        if(session('price_float') == 'true' ){
+            return  $min_price;
+        }else {
+            $min_price = number_format((float)($min_price), 3);
+            return $min_price;
+        }
     }
 
     public function getRemainHoursAttribute()
