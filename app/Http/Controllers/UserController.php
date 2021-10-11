@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Product_mazad;
 use Carbon\Carbon;
+use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use JD\Cloudder\Facades\Cloudder;
@@ -33,7 +34,7 @@ class UserController extends Controller
             $product->save();
 
             $max_price = Product_mazad::where('product_id', $row->id)->orderBy('created_at', 'desc')->first();
-            if($max_price){
+            if ($max_price) {
                 $max_price->status = 'winner';
                 $max_price->save();
             }
@@ -551,27 +552,31 @@ class UserController extends Controller
 
     public function my_bids(Request $request, $type)
     {
+
         $user = auth()->user();
         if ($user) {
             if ($type == 'current_ads' || $type == 'ended_ads') {
                 $data = Product_mazad::with('Product')->where('user_id', $user->id)->wherehas($type)
-                    ->get()->unique('product_id')->map(function ($entire_data) use ($user){
-                        $bid = Product_mazad::select('price')->where('product_id',$entire_data->product_id)->where('user_id',$user->id)->orderBy('price','desc')->first();
-                        $entire_data->my_last_bid = number_format($bid->price, 3);
-                        $entire_data->highest_bid = number_format($entire_data->Product->price, 3);
-                        $favorite = Favorite::where('user_id', $user->id)->where('product_id', $entire_data->id)->first();
-                        if ($favorite) {
-                            $entire_data->favorite = true;
-                        } else {
-                            $entire_data->favorite = false;
-                        }
-                        return $entire_data ;
-                    });
+                    ->paginate(20);
+
+                  $data->unique('product_id')->map(function ($entire_data) use ($user) {
+                    $bid = Product_mazad::select('price')->where('product_id', $entire_data->product_id)->where('user_id', $user->id)->orderBy('created_at', 'desc')->first();
+                    $entire_data->my_last_bid = number_format($bid->price, 3);
+                    $entire_data->highest_bid = $entire_data->Product->price;
+                    $favorite = Favorite::where('user_id', $user->id)->where('product_id', $entire_data->id)->first();
+                    if ($favorite) {
+                        $entire_data->favorite = true;
+                    } else {
+                        $entire_data->favorite = false;
+                    }
+                    return $entire_data;
+                });
             } elseif ($type == 'winner_ads') {
                 $data = Product_mazad::with('Product')->where('user_id', $user->id)
                     ->where('status', 'winner')
-                    ->get()->map(function ($entire_data) use ($user){
-                        $bid = Product_mazad::select('price')->where('product_id',$entire_data->product_id)->where('user_id',$user->id)->orderBy('price','desc')->first();
+                    ->paginate(20);
+                    $data->map(function ($entire_data) use ($user) {
+                        $bid = Product_mazad::select('price')->where('product_id', $entire_data->product_id)->where('user_id', $user->id)->orderBy('created_at', 'desc')->first();
                         $entire_data->my_last_bid = number_format($bid->price, 3);
                         $entire_data->highest_bid = $entire_data->Product->price;
                         $favorite = Favorite::where('user_id', $user->id)->where('product_id', $entire_data->product_id)->first();
@@ -580,13 +585,13 @@ class UserController extends Controller
                         } else {
                             $entire_data->favorite = false;
                         }
-                        return $entire_data ;
+                        return $entire_data;
                     });
             }
             $response = APIHelpers::createApiResponse(false, 200, '', '', $data, $request->lang);
             return response()->json($response, 200);
         } else {
-            $response = APIHelpers::createApiResponse(true, 406, 'you should login first', 'يجب تسجيل الدخول اولا' , null, $request->lang);
+            $response = APIHelpers::createApiResponse(true, 406, 'you should login first', 'يجب تسجيل الدخول اولا', null, $request->lang);
             return response()->json($response, 406);
         }
     }
