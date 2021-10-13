@@ -185,7 +185,9 @@ class ProductController extends Controller
 
     public function getdetails(Request $request)
     {
+
         $user = auth()->user();
+
         $lang = $request->lang;
         Session::put('lang', $lang);
         Session::put('price_float', 'true');
