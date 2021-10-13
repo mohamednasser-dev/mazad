@@ -1038,12 +1038,12 @@ class ProductController extends Controller
             return response()->json($response, 406);
         }
         $products = Product_view::where('user_id', auth()->user()->id)->has('Product')->with('Product')
-            ->select('product_id', 'user_id')
+            ->select('id','product_id', 'user_id')
             ->orderBy('created_at', 'desc')->simplePaginate(12);
         for ($i = 0; $i < count($products); $i++) {
             $products[$i]['Product']->price = number_format((float)($products[$i]['Product']->price), 3);
-            $views = Product_view::where('product_id', $products[$i]['product_id'])->get()->count();
-            $products[$i]['Product']->views = $views;
+//            $views = Product_view::where('product_id', $products[$i]['product_id'])->get()->count();
+//            $products[$i]['Product']->views = $views;
             if ($user) {
                 $favorite = Favorite::where('user_id', $user->id)->where('product_id', $products[$i]['product_id'])->first();
                 if ($favorite) {
