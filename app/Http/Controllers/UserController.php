@@ -556,11 +556,15 @@ class UserController extends Controller
         $user = auth()->user();
         if ($user) {
             if ($type == 'current_ads' || $type == 'ended_ads') {
-                $data = Product_mazad::with('Product')->where('user_id', $user->id)->wherehas($type)
+                $user_ids = Product_mazad::with('Product')->where('user_id', $user->id)->wherehas($type)
+                    ->orderBy('created_at','desc')->get()->unique('product_id')->pluck('id')->toArray();
+
+                $data = Product_mazad::whereIn('id',$user_ids)->with('Product')->where('user_id', $user->id)->wherehas($type)
                     ->paginate(20);
 
-                  $data->unique('product_id')->map(function ($entire_data) use ($user) {
-                    $bid = Product_mazad::select('price')->where('product_id', $entire_data->product_id)->where('user_id', $user->id)->orderBy('created_at', 'desc')->first();
+                $data->map(function ($entire_data) use ($user) {
+                    $bid = Product_mazad::select('price')->where('product_id', $entire_data->product_id)
+                        ->where('user_id', $user->id)->orderBy('created_at', 'desc')->first();
                     $entire_data->my_last_bid = number_format($bid->price, 3);
                     $entire_data->highest_bid = $entire_data->Product->price;
                     $favorite = Favorite::where('user_id', $user->id)->where('product_id', $entire_data->id)->first();
@@ -573,20 +577,20 @@ class UserController extends Controller
                 });
             } elseif ($type == 'winner_ads') {
                 $data = Product_mazad::with('Product')->where('user_id', $user->id)
-                    ->where('status', 'winner')
+                    ->where('status', 'winner')->orderBy('created_at','desc')
                     ->paginate(20);
-                    $data->map(function ($entire_data) use ($user) {
-                        $bid = Product_mazad::select('price')->where('product_id', $entire_data->product_id)->where('user_id', $user->id)->orderBy('created_at', 'desc')->first();
-                        $entire_data->my_last_bid = number_format($bid->price, 3);
-                        $entire_data->highest_bid = $entire_data->Product->price;
-                        $favorite = Favorite::where('user_id', $user->id)->where('product_id', $entire_data->product_id)->first();
-                        if ($favorite) {
-                            $entire_data->favorite = true;
-                        } else {
-                            $entire_data->favorite = false;
-                        }
-                        return $entire_data;
-                    });
+                $data->map(function ($entire_data) use ($user) {
+                    $bid = Product_mazad::select('price')->where('product_id', $entire_data->product_id)->where('user_id', $user->id)->orderBy('created_at', 'desc')->first();
+                    $entire_data->my_last_bid = number_format($bid->price, 3);
+                    $entire_data->highest_bid = $entire_data->Product->price;
+                    $favorite = Favorite::where('user_id', $user->id)->where('product_id', $entire_data->product_id)->first();
+                    if ($favorite) {
+                        $entire_data->favorite = true;
+                    } else {
+                        $entire_data->favorite = false;
+                    }
+                    return $entire_data;
+                });
             }
             $response = APIHelpers::createApiResponse(false, 200, '', '', $data, $request->lang);
             return response()->json($response, 200);
