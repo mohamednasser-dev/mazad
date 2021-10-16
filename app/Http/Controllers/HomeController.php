@@ -138,7 +138,7 @@ class HomeController extends Controller
         }
         $categories = Category::has('Sub_categories')
             ->with('Sub_categories')
-            ->with('Category_ads')
+//            ->with('Category_ads')
             ->where('deleted', 0)
             ->select('id', 'title_'.$lang.' as title')
             ->get()->map(function($data){
@@ -158,7 +158,7 @@ class HomeController extends Controller
         $data['categories'] = $categories;
         $forum = [];
 
-        $forum = Forum::select('id', 'image', 'title_'.$lang.' as title','desc_'.$lang.' as description','city_id','created_at')
+        $forum = Forum::select('id', 'image', 'title_'.$lang.' as title','desc_'.$lang.' as description','cat_id','city_id','created_at')
                 ->with('City_data')
                 ->with('Category_data')
                 ->where('deleted', '0')
