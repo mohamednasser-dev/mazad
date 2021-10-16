@@ -97,7 +97,11 @@ class Product extends Model
     {
         if(session('price_float') == 'true' ){
             $sum_price = Product_mazad::where('product_id',$this->id)->orderBy('price','desc')->first();
-            return  $sum_price->price;
+            if($sum_price){
+                return  $sum_price->price;
+            }else{
+                return  $price;
+            }
         }else{
             $sum_price = Product_mazad::where('product_id',$this->id)->orderBy('price','desc')->first();
             if($sum_price){

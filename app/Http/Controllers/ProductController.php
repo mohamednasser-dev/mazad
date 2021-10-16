@@ -1014,6 +1014,11 @@ class ProductController extends Controller
             ->simplePaginate(12);
 
         for ($i = 0; $i < count($products); $i++) {
+
+//            $bid = Product_mazad::select('price')->where('product_id',  $products[$i]['id'])->orderBy('created_at', 'desc')->first();
+//
+//            $products[$i]['highest_bid'] = $entire_data->Product->price;
+
             $products[$i]['price'] = number_format((float)($products[$i]['price']), 3);
             $products[$i]['views'] = Product_view::where('product_id', $products[$i]['id'])->get()->count();
             if ($user) {
