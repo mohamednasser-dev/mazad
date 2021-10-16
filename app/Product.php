@@ -52,6 +52,8 @@ class Product extends Model
     public function City() {
         return $this->belongsTo('App\City', 'city_id');
     }
+
+
     public function Area() {
         return $this->belongsTo('App\Area', 'area_id');
     }
@@ -94,7 +96,8 @@ class Product extends Model
     public function getPriceAttribute($price)
     {
         if(session('price_float') == 'true' ){
-                return  $price;
+            $sum_price = Product_mazad::where('product_id',$this->id)->orderBy('price','desc')->first();
+            return  $sum_price->price;
         }else{
             $sum_price = Product_mazad::where('product_id',$this->id)->orderBy('price','desc')->first();
             if($sum_price){
@@ -121,5 +124,9 @@ class Product extends Model
         $product = Product::where('id',$this->id)->first();
         $remaining_hours = Carbon::now()->diffInHours($product->expiry_date, false);
         return $remaining_hours;
+    }
+
+    public function winner_data() {
+        return $this->hasOne(Product_mazad::class, 'product_id', 'id')->where('status','winner')->with('user');
     }
 }

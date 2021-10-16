@@ -161,6 +161,10 @@ class ProductController extends Controller
             return response()->json($response, 406);
         }
         $product = Product::find($request->product_id);
+        if($product-> status == 2){
+            $response = APIHelpers::createApiResponse(true, 406, 'mazad has been ended', 'لا يمكن المزايدة  ....  تم انتهاء المزاد', null, $lang);
+            return response()->json($response, 406);
+        }
         if ($product->min_price <= $request->price) {
 //            try {
                 $user = auth()->user();
@@ -966,12 +970,15 @@ class ProductController extends Controller
             ->where('deleted', 0)
             ->where('user_id', auth()->user()->id)
             ->select('id', 'title', 'price', 'main_image', 'created_at')
+            ->with('winner_data')
             ->orderBy('created_at', 'desc')
             ->simplePaginate(12);
 
         for ($i = 0; $i < count($products); $i++) {
             $products[$i]['price'] = number_format((float)($products[$i]['price']), 3);
             $products[$i]['views'] = Product_view::where('product_id', $products[$i]['id'])->get()->count();
+//            $products[$i]['winner_data'] = Product_mazad::where('product_id',$products[$i]['id'])->where('status','winner')->first();
+
             if ($user) {
                 $favorite = Favorite::where('user_id', $user->id)->where('product_id', $products[$i]['id'])->first();
                 if ($favorite) {
