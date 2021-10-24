@@ -170,6 +170,7 @@ class CategoryController extends Controller
 
     public function get_sub_categories_level2(Request $request){
         $lang = $request->lang;
+        $user = auth()->user();
         $validator = Validator::make($request->all(), [
             'category_id' => 'required'
         ]);
@@ -241,6 +242,17 @@ class CategoryController extends Controller
         }
         if (count($data['sub_categories']) > 0) {
             for ($i = 0; $i < count($data['sub_categories']); $i++) {
+                //make favorite
+                if ($user) {
+                    $favorite = Favorite::where('user_id', $user->id)->where('type','category')->where('category_type','2')->where('product_id', $data['sub_categories'][$i]['id'])->first();
+                    if ($favorite) {
+                        $data[$i]['favorite'] = true;
+                    } else {
+                        $data[$i]['favorite'] = false;
+                    }
+                } else {
+                    $data[$i]['favorite'] = false;
+                }
                 $subThreeCats = SubThreeCategory::where('sub_category_id', $data['sub_categories'][$i]['id'])
                     ->where('deleted', 0)->select('id')->first();
                 if ($subThreeCats != null) {
@@ -316,15 +328,14 @@ class CategoryController extends Controller
             $products[$i]['price']= number_format((float)($products[$i]['price']), 3);
             $views = Product_view::where('product_id', $products[$i]['id'])->get()->count();
             $products[$i]['views'] = $views;
-            $user = auth()->user();
+
             if ($user) {
-                $favorite = Favorite::where('user_id', $user->id)->where('product_id', $products[$i]['id'])->first();
+                $favorite = Favorite::where('user_id', $user->id)->where('type','category')->where('product_id', $products[$i]['id'])->first();
                 if ($favorite) {
                     $products[$i]['favorite'] = true;
                 } else {
                     $products[$i]['favorite'] = false;
                 }
-
                 $conversation = Participant::where('ad_product_id', $products[$i]['id'])->where('user_id', $user->id)->first();
                 if ($conversation == null) {
                     $products[$i]['conversation_id'] = 0;

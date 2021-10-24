@@ -144,14 +144,14 @@ class HomeController extends Controller
             ->get()->map(function($data){
                 $data->mazad_count =  Product::where('category_id',$data->id)->where('status',1)->where('publish','Y')->where('deleted',0)->get()->count();
                 foreach ($data->Sub_categories as $key=> $row){
-                    $exists_cats = SubTwoCategory::where(function ($q) {
-                        $q->has('SubCategories', '>', 0);
-                    })->where('deleted', 0)->where('sub_category_id', $row->id)->get();
-                    if(count($exists_cats) > 0){
+//                    $exists_cats = SubTwoCategory::where(function ($q) {
+//                        $q->has('SubCategories', '>', 0);
+//                    })->where('deleted', 0)->where('sub_category_id', $row->id)->get();
+//                    if(count($exists_cats) > 0){
                         $data['Sub_categories'][$key]->next_level = true ;
-                    }else{
-                        $data['Sub_categories'][$key]->next_level = false ;
-                    }
+//                    }else{
+//                        $data['Sub_categories'][$key]->next_level = false ;
+//                    }
                 }
                 return $data;
             });
