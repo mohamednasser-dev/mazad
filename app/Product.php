@@ -130,7 +130,9 @@ class Product extends Model
         return $remaining_hours;
     }
 
-    public function winner_data() {
-        return $this->hasOne(Product_mazad::class, 'product_id', 'id')->where('status','winner')->with('user');
-    }
+//    public function winner_data() {
+//        return  $this->hasOne(Product_mazad::class, 'product_id', 'id')
+//            ->where('status','winner')->with('user');
+//
+//    }
 }

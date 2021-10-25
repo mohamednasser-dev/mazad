@@ -47,7 +47,7 @@ class ProductController extends Controller
             $product->save();
 
             $max_price = Product_mazad::where('product_id', $row->id)->orderBy('created_at', 'desc')->first();
-            if($max_price){
+            if ($max_price) {
                 $max_price->status = 'winner';
                 $max_price->save();
             }
@@ -161,22 +161,22 @@ class ProductController extends Controller
             return response()->json($response, 406);
         }
         $product = Product::find($request->product_id);
-        if($product-> status == 2){
+        if ($product->status == 2) {
             $response = APIHelpers::createApiResponse(true, 406, 'mazad has been ended', 'لا يمكن المزايدة  ....  تم انتهاء المزاد', null, $lang);
             return response()->json($response, 406);
         }
         if ($product->min_price <= $request->price) {
 //            try {
-                $user = auth()->user();
-                if ($product->user_id != $user->id) {
-                    $data['user_id'] = $user->id;
-                    Product_mazad::create($data);
-                    $response = APIHelpers::createApiResponse(false, 200, 'mazad make successfully', 'تم المزايدة بنجاح', null, $lang);
-                    return response()->json($response, 200);
-                } else {
-                    $response = APIHelpers::createApiResponse(true, 406, 'It is not possible for the auctioneer to bid', 'غير ممكن لصاحب المزاد ان يزايد', null, $lang);
-                    return response()->json($response, 406);
-                }
+            $user = auth()->user();
+            if ($product->user_id != $user->id) {
+                $data['user_id'] = $user->id;
+                Product_mazad::create($data);
+                $response = APIHelpers::createApiResponse(false, 200, 'mazad make successfully', 'تم المزايدة بنجاح', null, $lang);
+                return response()->json($response, 200);
+            } else {
+                $response = APIHelpers::createApiResponse(true, 406, 'It is not possible for the auctioneer to bid', 'غير ممكن لصاحب المزاد ان يزايد', null, $lang);
+                return response()->json($response, 406);
+            }
 //            } catch (Exception $exception) {
 //                $response = APIHelpers::createApiResponse(true, 406, 'you have make mazad befor', 'لقد تم المزايدة من قبل', null, $lang);
 //                return response()->json($response, 406);
@@ -966,19 +966,27 @@ class ProductController extends Controller
     public function ended_ads(Request $request)
     {
         $user = auth()->user();
-        $products = Product::where('status', 2)
+        $dd = Product::where('status', 2)
             ->where('deleted', 0)
             ->where('user_id', auth()->user()->id)
             ->select('id', 'title', 'price', 'main_image', 'created_at')
-            ->with('winner_data')
             ->orderBy('created_at', 'desc')
             ->simplePaginate(12);
+
+
+
+        $products = $dd;
 
         for ($i = 0; $i < count($products); $i++) {
             $products[$i]['price'] = number_format((float)($products[$i]['price']), 3);
             $products[$i]['views'] = Product_view::where('product_id', $products[$i]['id'])->get()->count();
-//            $products[$i]['winner_data'] = Product_mazad::where('product_id',$products[$i]['id'])->where('status','winner')->first();
-
+            //get winner data
+            $winner_data = Product_mazad::where('product_id', $products[$i]['id'])->where('status','winner')->with('user')->first();
+            if ($winner_data == null) {
+                $products[$i]['winner_data'] = (object)[];
+            }else{
+                $products[$i]['winner_data'] = $winner_data;
+            }
             if ($user) {
                 $favorite = Favorite::where('user_id', $user->id)->where('product_id', $products[$i]['id'])->first();
                 if ($favorite) {
@@ -1052,7 +1060,7 @@ class ProductController extends Controller
             return response()->json($response, 406);
         }
         $products = Product_view::where('user_id', auth()->user()->id)->has('Product')->with('Product')
-            ->select('id','product_id', 'user_id')
+            ->select('id', 'product_id', 'user_id')
             ->orderBy('created_at', 'desc')->simplePaginate(12);
         for ($i = 0; $i < count($products); $i++) {
             $products[$i]['Product']->price = number_format((float)($products[$i]['Product']->price), 3);
