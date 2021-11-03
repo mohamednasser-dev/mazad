@@ -34,7 +34,18 @@
             </div>
             <div class="form-group mb-4">
                 <label for="title_ar">{{ __('messages.name_en') }}</label>
-                <input required type="text" name="title_en" class="form-control" id="title_en" placeholder="{{ __('messages.name_en') }}" value="{{ $data['category']['title_en'] }}" >
+                <input required type="text" name="title_en" class="form-control" id="title_en"
+                       placeholder="{{ __('messages.name_en') }}" value="{{ $data['category']['title_en'] }}" >
+            </div>
+            <div class="form-group mb-4">
+                <label for="title_ar">{{ __('messages.desc_ar') }}</label>
+                <input required type="text" name="desc_ar" class="form-control" id="desc_ar"
+                       placeholder="{{ __('messages.desc_ar') }}" value="{{ $data['category']['desc_ar'] }}" >
+            </div>
+            <div class="form-group mb-4">
+                <label for="title_ar">{{ __('messages.desc_en') }}</label>
+                <input required type="text" name="desc_en" class="form-control"
+                       id="desc_ar" placeholder="{{ __('messages.desc_en') }}" value="{{ $data['category']['desc_en'] }}" >
             </div>
             <input type="submit" value="{{ __('messages.edit') }}" class="btn btn-primary">
         </form>

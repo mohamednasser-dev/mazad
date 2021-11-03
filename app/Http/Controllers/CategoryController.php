@@ -366,6 +366,7 @@ class CategoryController extends Controller
     public function get_sub_categories_level3(Request $request)
     {
         $lang = $request->lang;
+        $user = auth()->user();
         $validator = Validator::make($request->all(), [
             'category_id' => 'required'
         ]);
@@ -632,6 +633,7 @@ class CategoryController extends Controller
     public function get_sub_categories_level4(Request $request)
     {
         $lang = $request->lang;
+        $user = auth()->user();
         $validator = Validator::make($request->all(), [
             'category_id' => 'required'
         ]);
@@ -831,6 +833,7 @@ class CategoryController extends Controller
     public function get_sub_categories_level5(Request $request)
     {
         $lang = $request->lang;
+        $user = auth()->user();
         $validator = Validator::make($request->all(), [
             'category_id' => 'required'
         ]);
