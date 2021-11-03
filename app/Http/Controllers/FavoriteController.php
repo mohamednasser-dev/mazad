@@ -67,7 +67,7 @@ class FavoriteController extends Controller
         $favorite = [];
         $favorite_cat = [];
             $validator = Validator::make($request->all(), [
-                'product_id' => 'required|exists:categories,id',
+                'product_id' => 'required',
                 'category_type' => 'required'
             ]);
         $favorite_cat = Favorite::where('product_id', $request->product_id)->where('type', 'category')

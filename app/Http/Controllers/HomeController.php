@@ -35,7 +35,7 @@ class HomeController extends Controller
             $product->save();
 
             $max_price = Product_mazad::where('product_id', $row->id)->orderBy('created_at', 'desc')->first();
-            if($max_price){
+            if ($max_price) {
                 $max_price->status = 'winner';
                 $max_price->save();
             }
@@ -127,7 +127,7 @@ class HomeController extends Controller
 
     public function getHomeAds(Request $request)
     {
-//        $user = auth()->user();
+        $user = auth()->user();
         $lang = $request->lang;
         Session::put('lang_api', $request->lang);
         $one = Ad::select('id', 'image', 'type', 'content')->where('place', 1)->get();
@@ -140,15 +140,25 @@ class HomeController extends Controller
             ->with('Sub_categories')
 //            ->with('Category_ads')
             ->where('deleted', 0)
-            ->select('id', 'title_'.$lang.' as title')
-            ->get()->map(function($data){
-                $data->mazad_count =  Product::where('category_id',$data->id)->where('status',1)->where('publish','Y')->where('deleted',0)->get()->count();
-                foreach ($data->Sub_categories as $key=> $row){
+            ->select('id', 'title_' . $lang . ' as title')
+            ->get()->map(function ($data) use ($user) {
+                $data->mazad_count = Product::where('category_id', $data->id)->where('status', 1)->where('publish', 'Y')->where('deleted', 0)->get()->count();
+                foreach ($data->Sub_categories as $key => $row) {
 //                    $exists_cats = SubTwoCategory::where(function ($q) {
 //                        $q->has('SubCategories', '>', 0);
 //                    })->where('deleted', 0)->where('sub_category_id', $row->id)->get();
 //                    if(count($exists_cats) > 0){
-                        $data['Sub_categories'][$key]->next_level = true ;
+                    if ($user) {
+                        $favorite = Favorite::where('type', 'category')->where('category_type','1')->where('product_id', $row->id)->where('user_id',$user->id)->first();
+                        if ($favorite) {
+                            $data['Sub_categories'][$key]->favorite = true;
+                        } else {
+                            $data['Sub_categories'][$key]->favorite = false;
+                        }
+                    } else {
+                        $data['Sub_categories'][$key]->favorite = false;
+                    }
+                    $data['Sub_categories'][$key]->next_level = true;
 //                    }else{
 //                        $data['Sub_categories'][$key]->next_level = false ;
 //                    }
@@ -158,13 +168,13 @@ class HomeController extends Controller
         $data['categories'] = $categories;
         $forum = [];
 
-        $forum = Forum::select('id', 'image', 'title_'.$lang.' as title','desc_'.$lang.' as description','cat_id','city_id','created_at')
-                ->with('City_data')
-                ->with('Category_data')
-                ->where('deleted', '0')
-                ->orderBy('id', 'desc')
-                ->limit(5)
-                ->get()->makeHidden(['city_id']);
+        $forum = Forum::select('id', 'image', 'title_' . $lang . ' as title', 'desc_' . $lang . ' as description', 'cat_id', 'city_id', 'created_at')
+            ->with('City_data')
+            ->with('Category_data')
+            ->where('deleted', '0')
+            ->orderBy('id', 'desc')
+            ->limit(5)
+            ->get()->makeHidden(['city_id']);
 
         $data['forum'] = $forum;
 
