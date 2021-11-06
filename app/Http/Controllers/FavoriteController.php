@@ -63,6 +63,10 @@ class FavoriteController extends Controller
             $response = APIHelpers::createApiResponse(true, 406, 'تم حظر حسابك', 'تم حظر حسابك', null, $request->lang);
             return response()->json($response, 406);
         }
+        if ($request->product_id == 0) {
+            $response = APIHelpers::createApiResponse(true, 406,'you should choose category','يجب اختيار قسم اولا', null, $request->lang);
+            return response()->json($response, 406);
+        }
         $input = $request->all();
         $favorite = [];
         $favorite_cat = [];
