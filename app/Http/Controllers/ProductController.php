@@ -1406,6 +1406,11 @@ class ProductController extends Controller
             $response = APIHelpers::createApiResponse(true, 406, 'ad not exists', 'لا يوجد اعلان بهذا ال id', null, $request->lang);
             return response()->json($response, 406);
         }
+        $exists_mazad = Product_mazad::where('product_id',$id)->first();
+        if ($exists_mazad != null) {
+            $response = APIHelpers::createApiResponse(true, 406, 'Editing is not allowed due to auctions made on this ad', 'غير مسموح بالتعديل لوجود مزادات تمت على هذا الاعلان', null, $request->lang);
+            return response()->json($response, 406);
+        }
         $validator = Validator::make($input, [
             'category_id' => 'required',
             'sub_category_id' => 'required',

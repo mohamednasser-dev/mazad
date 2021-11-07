@@ -1,7 +1,5 @@
 @extends('admin.app')
-
 @section('title' , __('messages.add_new_category'))
-
 @section('content')
     <div class="col-lg-12 col-12 layout-spacing">
         <div class="statbox widget box box-shadow">
@@ -23,7 +21,6 @@
                 </label>
                 <div class="custom-file-container__image-preview"></div>
             </div>
-
             <div class="form-group mb-4">
                 <label for="title_ar">{{ __('messages.name_ar') }}</label>
                 <input required type="text" name="title_ar" class="form-control" id="title_ar" placeholder="{{ __('messages.name_ar') }}" value="" >
