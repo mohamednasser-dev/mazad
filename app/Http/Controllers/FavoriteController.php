@@ -125,7 +125,7 @@ class FavoriteController extends Controller
             return response()->json($response, 406);
         }
         $validator = Validator::make($request->all(), [
-            'product_id' => 'required|exists:categories,id',
+            'product_id' => 'required',
             'category_type' => 'required'
         ]);
         if ($validator->fails()) {
