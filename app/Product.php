@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
 //    protected $dates = ['publication_date'];
-    protected $appends = array('mazad_count','remain_hours');
+    protected $appends = array('mazad_count','remain_hours','remain_seconds');
     protected $fillable = ['title','description', 'price','category_id','sub_category_id','sub_category_two_id','expire_special_date',
         'sub_category_three_id','sub_category_four_id','user_id', 'type','publication_date','re_post_date','is_special',
         'views', 'offer', 'status', 'expiry_date','main_image','expire_pin_date','created_at','plan_id','publish',
@@ -127,6 +127,13 @@ class Product extends Model
     {
         $product = Product::where('id',$this->id)->first();
         $remaining_hours = Carbon::now()->diffInHours($product->expiry_date, false);
+        return $remaining_hours;
+    }
+
+    public function getRemainSecondsAttribute()
+    {
+        $product = Product::where('id',$this->id)->first();
+        $remaining_hours = Carbon::now()->diffInSeconds($product->expiry_date, false);
         return $remaining_hours;
     }
 

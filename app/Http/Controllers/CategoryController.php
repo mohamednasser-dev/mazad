@@ -318,10 +318,17 @@ class CategoryController extends Controller
         }
 
         array_unshift($data['sub_categories']);
+        if($request->orderBy == null){
+            $request->orderBy = 'desc';
+        }
         if ($request->sub_category_id == 0) {
-            $products = Product::where('status', 1)->where('publish', 'Y')->where('deleted', 0)->where('category_id', $request->category_id)->select('id', 'title', 'price', 'main_image as image', 'created_at', 'pin')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(12);
+            $products = Product::where('status', 1)->where('publish', 'Y')->where('deleted', 0)
+                ->where('category_id', $request->category_id)
+                ->select('id', 'title', 'price', 'main_image as image', 'created_at', 'pin')->orderBy('price', $request->orderBy)->simplePaginate(12);
         } else {
-            $products = Product::where('status', 1)->where('publish', 'Y')->where('deleted', 0)->where('sub_category_id', $request->sub_category_id)->select('id', 'title', 'price', 'main_image as image', 'created_at', 'pin')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(12);
+            $products = Product::where('status', 1)->where('publish', 'Y')->where('deleted', 0)
+                ->where('sub_category_id', $request->sub_category_id)
+                ->select('id', 'title', 'price', 'main_image as image', 'created_at', 'pin')->orderBy('price', $request->orderBy)->simplePaginate(12);
         }
         for ($i = 0; $i < count($products); $i++) {
 //            $products[$i]['created_at']= Carbon::createFromFormat('Y-m-d H:i:s', $products[$i]['created_at'])->translatedformat('F');
@@ -579,7 +586,8 @@ class CategoryController extends Controller
 
         array_unshift($data['sub_category_array'], $all);
         array_unshift($data['sub_categories']);
-        $products = Product::where('status', 1)->where('deleted', 0)->where('publish', 'Y')->where('category_id', $request->category_id)->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at');
+        $products = Product::where('status', 1)->where('deleted', 0)->where('publish', 'Y')
+            ->where('category_id', $request->category_id)->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at');
         if ($request->sub_category_id != 0) {
             $products = $products->where('sub_category_two_id', $request->sub_category_id);
         }
@@ -587,8 +595,10 @@ class CategoryController extends Controller
         if ($request->sub_category_level1_id != 0) {
             $products = $products->where('sub_category_id', $request->sub_category_level1_id);
         }
-
-        $products = $products->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(12);
+if($request->orderBy == null){
+    $request->orderBy ='desc' ;
+}
+        $products = $products->orderBy('price', $request->orderBy)->simplePaginate(12);
 
         for ($i = 0; $i < count($products); $i++) {
             $products[$i]['price'] = number_format((float)($products[$i]['price']), 3);
@@ -794,8 +804,12 @@ class CategoryController extends Controller
         if ($request->sub_category_level1_id != 0) {
             $products = $products->where('sub_category_id', $request->sub_category_level1_id);
         }
+if($request->orderBy == null){
 
-        $products = $products->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(12);
+    $request->orderBy = 'desc';
+}
+        $products = $products->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')
+            ->orderBy('price', $request->orderBy)->simplePaginate(12);
         for ($i = 0; $i < count($products); $i++) {
             $products[$i]['price'] = number_format((float)($products[$i]['price']), 3);
             $views = Product_view::where('product_id', $products[$i]['id'])->get()->count();
@@ -960,7 +974,11 @@ class CategoryController extends Controller
         if ($request->sub_category_level1_id != 0) {
             $products = $products->where('sub_category_id', $request->sub_category_level1_id);
         }
-        $products = $products->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')->orderBy('pin', 'DESC')->orderBy('created_at', 'desc')->simplePaginate(12);
+        if( $request->orderBy == null){
+            $request->orderBy = 'desc';
+        }
+        $products = $products->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')
+            ->orderBy('price', $request->orderBy)->simplePaginate(12);
         for ($i = 0; $i < count($products); $i++) {
             $products[$i]['price'] = number_format((float)($products[$i]['price']), 3);
             $views = Product_view::where('product_id', $products[$i]['id'])->get()->count();
