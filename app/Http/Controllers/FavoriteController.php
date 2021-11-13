@@ -269,7 +269,10 @@ class FavoriteController extends Controller
             }elseif($level_num == 5) {
                 $products = $products->where('sub_category_five_id', $cat_id);
             }
-            $products = $products->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')->orderBy('created_at', 'desc')->simplePaginate(12);
+            if($request->sortBy == null){
+                $request->sortBy = 'asc';
+            }
+            $products = $products->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')->orderBy('price', $request->sortBy)->simplePaginate(12);
             for ($i = 0; $i < count($products); $i++) {
                 $products[$i]['price']= number_format((float)($products[$i]['price']), 3);
                 $views = Product_view::where('product_id', $products[$i]['id'])->get()->count();
