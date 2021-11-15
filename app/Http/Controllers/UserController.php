@@ -283,7 +283,7 @@ class UserController extends Controller
         for ($i = 0; $i < count($products); $i++) {
             $products[$i]['price'] = number_format((float)($products[$i]['price']), 3);
             $products[$i]['image'] = ProductImage::where('product_id', $products[$i]['id'])->select('image')->first()['image'];
-            $favorite = Favorite::where('user_id', $user->id)->where('product_id', $products[$i]['id'])->first();
+            $favorite = Favorite::where('user_id', $user->id)->where('type', 'product')->where('product_id', $products[$i]['id'])->first();
             if ($favorite) {
                 $products[$i]['favorite'] = true;
             } else {
@@ -311,7 +311,7 @@ class UserController extends Controller
         for ($i = 0; $i < count($products); $i++) {
             $products[$i]['price'] = number_format((float)($products[$i]['price']), 3);
             $products[$i]['image'] = ProductImage::where('product_id', $products[$i]['id'])->select('image')->first()['image'];
-            $favorite = Favorite::where('user_id', $user->id)->where('product_id', $products[$i]['id'])->first();
+            $favorite = Favorite::where('user_id', $user->id)->where('type', 'product')->where('product_id', $products[$i]['id'])->first();
             if ($favorite) {
                 $products[$i]['favorite'] = true;
             } else {
@@ -521,7 +521,7 @@ class UserController extends Controller
 
             $user = auth()->user();
             if ($user) {
-                $favorite = Favorite::where('user_id', $user->id)->where('product_id', $products[$i]['id'])->first();
+                $favorite = Favorite::where('user_id', $user->id)->where('type', 'product')->where('product_id', $products[$i]['id'])->first();
                 if ($favorite) {
                     $products[$i]['favorite'] = true;
                 } else {
@@ -567,7 +567,7 @@ class UserController extends Controller
                         ->where('user_id', $user->id)->orderBy('created_at', 'desc')->first();
                     $entire_data->my_last_bid = number_format($bid->price, 3);
                     $entire_data->highest_bid = $entire_data->Product->price;
-                    $favorite = Favorite::where('user_id', $user->id)->where('product_id', $entire_data->id)->first();
+                    $favorite = Favorite::where('user_id', $user->id)->where('type', 'product')->where('product_id', $entire_data->id)->first();
                     if ($favorite) {
                         $entire_data->favorite = true;
                     } else {
@@ -583,7 +583,7 @@ class UserController extends Controller
                     $bid = Product_mazad::select('price')->where('product_id', $entire_data->product_id)->where('user_id', $user->id)->orderBy('created_at', 'desc')->first();
                     $entire_data->my_last_bid = number_format($bid->price, 3);
                     $entire_data->highest_bid = $entire_data->Product->price;
-                    $favorite = Favorite::where('user_id', $user->id)->where('product_id', $entire_data->product_id)->first();
+                    $favorite = Favorite::where('user_id', $user->id)->where('type', 'product')->where('product_id', $entire_data->product_id)->first();
                     if ($favorite) {
                         $entire_data->favorite = true;
                     } else {

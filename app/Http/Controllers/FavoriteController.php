@@ -163,7 +163,7 @@ class FavoriteController extends Controller
                 for ($i = 0; $i < count($products); $i++) {
                     $products[$i]['Product']->price = number_format((float)($products[$i]['Product']->price), 3);
                     if ($user) {
-                        $favorite = Favorite::where('user_id', $user->id)->where('product_id', $products[$i]['product_id'])->first();
+                        $favorite = Favorite::where('user_id', $user->id)->where('type', 'product')->where('product_id', $products[$i]['product_id'])->first();
                         if ($favorite) {
                             $products[$i]['Product']->favorite = true;
                         } else {
@@ -279,7 +279,7 @@ class FavoriteController extends Controller
                 $products[$i]['views'] = $views;
                 $user = auth()->user();
                 if ($user) {
-                    $favorite = Favorite::where('user_id', $user->id)->where('product_id', $products[$i]['id'])->first();
+                    $favorite = Favorite::where('user_id', $user->id)->where('type', 'product')->where('product_id', $products[$i]['id'])->first();
                     if ($favorite) {
                         $products[$i]['favorite'] = true;
                     } else {
@@ -338,7 +338,7 @@ class FavoriteController extends Controller
                 $products[$i]['views'] = $views;
                 $user = auth()->user();
                 if ($user) {
-                    $favorite = Favorite::where('user_id', $user->id)->where('product_id', $products[$i]['id'])->first();
+                    $favorite = Favorite::where('user_id', $user->id)->where('type', 'product')->where('product_id', $products[$i]['id'])->first();
                     if ($favorite) {
                         $products[$i]['favorite'] = true;
                     } else {

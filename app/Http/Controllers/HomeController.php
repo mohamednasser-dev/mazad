@@ -109,7 +109,7 @@ class HomeController extends Controller
             $data['offers'][$i]['image'] = ProductImage::where('product_id', $data['offers'][$i]['id'])->select('image')->first()['image'];
             $user = auth()->user();
             if ($user) {
-                $favorite = Favorite::where('user_id', $user->id)->where('product_id', $data['offers'][$i]['id'])->first();
+                $favorite = Favorite::where('user_id', $user->id)->where('type', 'product')->where('product_id', $data['offers'][$i]['id'])->first();
                 if ($favorite) {
                     $data['offers'][$i]['favorite'] = true;
                 } else {
