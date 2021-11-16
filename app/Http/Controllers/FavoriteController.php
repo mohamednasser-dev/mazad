@@ -198,7 +198,7 @@ class FavoriteController extends Controller
                         }
 
                         $products[$i]['first_level_name'] = $category->$title;
-                        $products[$i]['category_id'] = 0;
+                        $products[$i]['category_id'] = $category->id;
                         $products[$i]['sub_category_level1_id'] = 0 ;
                         $products[$i]['sub_category_level2_id'] = 0 ;
                         $products[$i]['sub_category_level3_id'] = 0 ;
