@@ -203,6 +203,7 @@ class FavoriteController extends Controller
                         } else {
                             $products[$i]['title'] = $category->title_en;
                         }
+                        $products[$i]['category_id'] = $category->category_id;
                     } elseif ($products[$i]['category_type'] == '2') {
                         $category = SubTwoCategory::where('id', $products[$i]['product_id'])->first();
                         if ($lang == 'ar') {
@@ -210,6 +211,8 @@ class FavoriteController extends Controller
                         } else {
                             $products[$i]['title'] = $category->title_en;
                         }
+                        $products[$i]['category_id'] = $category->category->category_id;
+                        $products[$i]['sub_category_level1_id'] = $category->sub_category_id;
                     } elseif ($products[$i]['category_type'] == '3') {
                         $category = SubThreeCategory::where('id', $products[$i]['product_id'])->first();
                         if ($lang == 'ar') {
@@ -217,6 +220,10 @@ class FavoriteController extends Controller
                         } else {
                             $products[$i]['title'] = $category->title_en;
                         }
+                        $products[$i]['category_id'] = $category->category->category->category_id;
+                        $products[$i]['sub_category_level1_id'] = $category->category->sub_category_id;
+                        $products[$i]['sub_category_level2_id'] = $category->sub_category_id;
+
                     } elseif ($products[$i]['category_type'] == '4') {
                         $category = SubFourCategory::where('id', $products[$i]['product_id'])->first();
                         if ($lang == 'ar') {
@@ -224,6 +231,11 @@ class FavoriteController extends Controller
                         } else {
                             $products[$i]['title'] = $category->title_en;
                         }
+                        $products[$i]['category_id'] = $category->category->category->category->category_id;
+                        $products[$i]['sub_category_level1_id'] = $category->category->category->sub_category_id;
+                        $products[$i]['sub_category_level2_id'] = $category->category->sub_category_id;
+                        $products[$i]['sub_category_level3_id'] = $category->sub_category_id;
+
                     } elseif ($products[$i]['category_type'] == '5') {
                         $category = SubFiveCategory::where('id', $products[$i]['product_id'])->first();
                         if ($lang == 'ar') {
@@ -231,6 +243,11 @@ class FavoriteController extends Controller
                         } else {
                             $products[$i]['title'] = $category->title_en;
                         }
+                        $products[$i]['category_id'] = $category->category->category->category->category->category_id;
+                        $products[$i]['sub_category_level1_id'] = $category->category->category->category->sub_category_id;
+                        $products[$i]['sub_category_level2_id'] = $category->category->category->sub_category_id;
+                        $products[$i]['sub_category_level3_id'] = $category->Category->sub_category_id;
+                        $products[$i]['sub_category_level4_id'] = $category->sub_category_id;
                     }
                     $products[$i]['favorite'] = true;
 
