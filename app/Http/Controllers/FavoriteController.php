@@ -211,7 +211,7 @@ class FavoriteController extends Controller
                         } else {
                             $products[$i]['title'] = $category->title_en;
                         }
-                        $products[$i]['first_level_name'] = $category->category->$title;
+                        $products[$i]['first_level_name'] = $category->$title;
                         $products[$i]['category_id'] = $category->category_id;
                         $products[$i]['sub_category_level1_id'] = $products[$i]['product_id'] ;
                         $products[$i]['sub_category_level2_id'] = 0 ;
