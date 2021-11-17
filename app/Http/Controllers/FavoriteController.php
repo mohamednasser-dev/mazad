@@ -213,7 +213,7 @@ class FavoriteController extends Controller
                         }
                         $products[$i]['first_level_name'] = $category->category->$title;
                         $products[$i]['category_id'] = $category->category_id;
-                        $products[$i]['sub_category_level1_id'] = 0 ;
+                        $products[$i]['sub_category_level1_id'] = $products[$i]['product_id'] ;
                         $products[$i]['sub_category_level2_id'] = 0 ;
                         $products[$i]['sub_category_level3_id'] = 0 ;
                         $products[$i]['sub_category_level4_id'] = 0 ;
@@ -228,7 +228,7 @@ class FavoriteController extends Controller
                         $products[$i]['first_level_name'] = $category->category->$title;
                         $products[$i]['category_id'] = $category->category->category_id;
                         $products[$i]['sub_category_level1_id'] = $category->sub_category_id;
-                        $products[$i]['sub_category_level2_id'] = 0 ;
+                        $products[$i]['sub_category_level2_id'] = $products[$i]['product_id'] ;
                         $products[$i]['sub_category_level3_id'] = 0 ;
                         $products[$i]['sub_category_level4_id'] = 0 ;
                         $products[$i]['sub_category_level5_id'] = 0 ;
@@ -243,7 +243,7 @@ class FavoriteController extends Controller
                         $products[$i]['category_id'] = $category->category->category->category_id;
                         $products[$i]['sub_category_level1_id'] = $category->category->sub_category_id;
                         $products[$i]['sub_category_level2_id'] = $category->sub_category_id;
-                        $products[$i]['sub_category_level3_id'] = 0 ;
+                        $products[$i]['sub_category_level3_id'] = $products[$i]['product_id'] ;
                         $products[$i]['sub_category_level4_id'] = 0 ;
                         $products[$i]['sub_category_level5_id'] = 0 ;
 
@@ -259,7 +259,7 @@ class FavoriteController extends Controller
                         $products[$i]['sub_category_level1_id'] = $category->category->category->sub_category_id;
                         $products[$i]['sub_category_level2_id'] = $category->category->sub_category_id;
                         $products[$i]['sub_category_level3_id'] = $category->sub_category_id;
-                        $products[$i]['sub_category_level4_id'] = 0 ;
+                        $products[$i]['sub_category_level4_id'] = $products[$i]['product_id'] ;
                         $products[$i]['sub_category_level5_id'] = 0 ;
 
                     } elseif ($products[$i]['category_type'] == '5') {
