@@ -974,17 +974,16 @@ class ProductController extends Controller
             ->simplePaginate(12);
 
 
-
         $products = $dd;
 
         for ($i = 0; $i < count($products); $i++) {
             $products[$i]['price'] = number_format((float)($products[$i]['price']), 3);
             $products[$i]['views'] = Product_view::where('product_id', $products[$i]['id'])->get()->count();
             //get winner data
-            $winner_data = Product_mazad::where('product_id', $products[$i]['id'])->where('status','winner')->with('user')->first();
+            $winner_data = Product_mazad::where('product_id', $products[$i]['id'])->where('status', 'winner')->with('user')->first();
             if ($winner_data == null) {
                 $products[$i]['winner_data'] = (object)[];
-            }else{
+            } else {
                 $products[$i]['winner_data'] = $winner_data;
             }
             if ($user) {
@@ -1406,7 +1405,7 @@ class ProductController extends Controller
             $response = APIHelpers::createApiResponse(true, 406, 'ad not exists', 'لا يوجد اعلان بهذا ال id', null, $request->lang);
             return response()->json($response, 406);
         }
-        $exists_mazad = Product_mazad::where('product_id',$id)->first();
+        $exists_mazad = Product_mazad::where('product_id', $id)->first();
         if ($exists_mazad != null) {
             $response = APIHelpers::createApiResponse(true, 406, 'Editing is not allowed due to auctions made on this ad', 'غير مسموح بالتعديل لوجود مزادات تمت على هذا الاعلان', null, $request->lang);
             return response()->json($response, 406);
@@ -1437,7 +1436,7 @@ class ProductController extends Controller
         } else {
             $user = auth()->user();
             if ($user != null) {
-                $input['user_id'] = $user->id;
+//                $input['user_id'] = $user->id;
             } else {
                 $response = APIHelpers::createApiResponse(true, 406, 'you should login first', 'يجب تسجيل الدخول اولا', null, $request->lang);
                 return response()->json($response, 406);
@@ -1464,6 +1463,14 @@ class ProductController extends Controller
                 }
             }
             unset($input['images']);
+            if ($request->day_count_id != $product->day_count_id) {
+                $mytime = Carbon::now();
+                $today = Carbon::parse($mytime->toDateTimeString())->format('Y-m-d H:i');
+                $final_pin_date = Carbon::createFromFormat('Y-m-d H:i', $today);
+                $mazad_time = Mazad_time::where('id', $request->day_count_id)->first();
+                $final_expire_pin_date = $final_pin_date->addDays($mazad_time->day_num);
+                $input['expiry_date'] = $final_expire_pin_date;
+            }
             $updated = Product::where('id', $id)->update($input);
             if ($updated == 1) {
                 $final_data['status'] = true;
