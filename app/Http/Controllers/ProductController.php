@@ -532,6 +532,7 @@ class ProductController extends Controller
             'share_location' => 'required',
             'day_count_id' => 'required|exists:mazad_times,id',
             'price' => 'required',
+            'show_whatsapp' => 'required',
             'min_price' => 'required'
         ]);
         if ($validator->fails()) {
@@ -1229,7 +1230,9 @@ class ProductController extends Controller
         $data['ad'] = Product::where('id', $id)
             ->with('City_api')
             ->with('Area_api')
-            ->select('id', 'category_id', 'sub_category_id', 'sub_category_two_id', 'sub_category_three_id', 'sub_category_four_id', 'sub_category_five_id', 'title', 'day_count_id', 'price', 'min_price', 'description', 'main_image', 'city_id', 'area_id', 'share_location', 'latitude', 'longitude')
+            ->select('id', 'category_id', 'sub_category_id', 'sub_category_two_id', 'sub_category_three_id',
+                'sub_category_four_id', 'sub_category_five_id', 'title', 'day_count_id', 'price', 'min_price',
+                'description', 'main_image', 'city_id', 'area_id', 'share_location','show_whatsapp', 'latitude', 'longitude')
             ->first();
         $data['ad']->price = number_format((float)($data['ad']->price), 3);
 
@@ -1237,6 +1240,11 @@ class ProductController extends Controller
             $data['ad']->share_location = true;
         } else {
             $data['ad']->share_location = false;
+        }
+        if ($data['ad']->show_whatsapp == 1) {
+            $data['ad']->show_whatsapp = true;
+        } else {
+            $data['ad']->show_whatsapp = false;
         }
         $data['ad_images'] = ProductImage::where('product_id', $id)->select('id', 'image', 'product_id')->get();
         if ($request->lang == 'ar') {
@@ -1426,6 +1434,7 @@ class ProductController extends Controller
             'price' => 'required|numeric',
             'min_price' => 'required|numeric',
             'day_count_id' => 'required',
+            'show_whatsapp' => 'required',
             'description' => '',
             'main_image' => '',
             'images' => ''

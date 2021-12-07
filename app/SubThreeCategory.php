@@ -20,9 +20,7 @@ class SubThreeCategory extends Model
 
     public function SubCategories() {
         return $this->hasMany('App\SubFourCategory', 'sub_category_id')->where('deleted', 0)->where(function ($q) {
-            $q->has('SubCategories', '>', 0)->orWhere(function ($qq) {
-                $qq->has('Products', '>', 0);
-            });
+            $q->has('SubCategories', '>', 0);
         });
     }
 }
