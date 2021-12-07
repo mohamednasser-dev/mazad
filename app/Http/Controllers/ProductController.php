@@ -198,7 +198,7 @@ class ProductController extends Controller
         $data = Product::with('Product_user')->with('category_name')
             ->select('id', 'title', 'main_image', 'description', 'expiry_date', 'day_count_id',
                 'price', 'min_price', 'type', 'publication_date as date', 'user_id', 'category_id', 'latitude', 'longitude',
-                'share_location', 'city_id', 'area_id')
+                'share_location','show_whatsapp', 'city_id', 'area_id')
             ->find($request->id)->makeHidden(['City', 'Area']);
 
         $data->address = $data->City->title_ar . ' , ' . $data->Area->title_ar;
