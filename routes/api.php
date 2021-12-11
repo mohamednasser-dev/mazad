@@ -89,7 +89,7 @@ use Illuminate\Http\Request;
         'middleware' => 'api',
         'prefix' => 'categories'
     ], function($router){
-        Route::get('/{lang}/{v}' , 'CategoryController@getcategories')->middleware('checkguest');
+        Route::get('/{lang}/{v}' , 'CategoryController@get_categories')->middleware('checkguest');
     });
 
     // sub category level 1

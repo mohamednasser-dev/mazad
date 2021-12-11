@@ -30,7 +30,7 @@ class CategoryController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['getSubTwoCategoryOptions', 'getSubCategoryOptions', 'show_six_cat', 'getCategoryOptions', 'show_five_cat', 'show_four_cat', 'show_third_cat', 'show_second_cat', 'show_first_cat', 'getcategories', 'getAdSubCategories', 'get_sub_categories_level2', 'get_sub_categories_level3', 'get_sub_categories_level4', 'get_sub_categories_level5', 'getproducts']]);
+        $this->middleware('auth:api', ['except' => ['getSubTwoCategoryOptions', 'getSubCategoryOptions', 'show_six_cat', 'getCategoryOptions', 'show_five_cat', 'show_four_cat', 'show_third_cat', 'show_second_cat', 'show_first_cat', 'get_categories', 'getAdSubCategories', 'get_sub_categories_level2', 'get_sub_categories_level3', 'get_sub_categories_level4', 'get_sub_categories_level5', 'getproducts']]);
         $expired = Product::where('status', 1)->whereDate('expiry_date', '<', Carbon::now())->get();
         foreach ($expired as $row) {
             $product = Product::find($row->id);
@@ -161,7 +161,7 @@ class CategoryController extends Controller
         $response = APIHelpers::createApiResponse(false, 200, '', '', array('categories' => $categories), $request->lang);
         return response()->json($response, 200);
     }
-    public function getcategories(Request $request)
+    public function get_categories(Request $request)
     {
         $lang = $request->lang;
         $categories = Category::where(function ($q) {
