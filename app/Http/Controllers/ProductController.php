@@ -52,6 +52,7 @@ class ProductController extends Controller
             if ($max_price) {
                 $max_price->status = 'winner';
                 $max_price->save();
+                //winner user notify
                 $user = User::find($max_price->user_id);
                 $fcm_token = $user->fcm_token;
                 $insert_notification = new Notification();
@@ -63,7 +64,21 @@ class ProductController extends Controller
                 $user_notification->notification_id = $insert_notification->id;
                 $user_notification->user_id = $max_price->user_id;
                 $user_notification->save();
-                APIHelpers::send_notification('تم انتهاء المزاد','تم انتهاء المزاد '.$product->title , null , null , [$fcm_token]);
+                APIHelpers::send_notification('تم انتهاء المزاد','انت الفائز بالمزاد '.$product->title , null , null , [$fcm_token]);
+
+                //mazad user owner notify
+                $owner_user = User::find($product->user_id);
+                $owner_fcm_token = $owner_user->fcm_token;
+                $insert_owner_notify = new Notification();
+                $insert_owner_notify->image = null;
+                $insert_owner_notify->title = 'تم انتهاء المزاد';
+                $insert_owner_notify->body = 'تم انتهاء المزاد الخاص بك - '.$product->title ;
+                $insert_owner_notify->save();
+                $user_owner_notification = new UserNotification();
+                $user_owner_notification->notification_id = $insert_owner_notify->id;
+                $user_owner_notification->user_id = $product->user_id;
+                $user_owner_notification->save();
+                APIHelpers::send_notification('تم انتهاء المزاد','تم انتهاء المزاد الخاص بك - '.$product->title , null , null , [$owner_fcm_token]);
             }
         }
     }
