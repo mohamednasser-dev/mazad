@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Categories_ad;
+use App\Notification;
 use App\Participant;
 use App\Product_mazad;
+use App\User;
+use App\UserNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use App\Category_option_value;
@@ -20,6 +23,7 @@ use App\SubCategory;
 use App\Favorite;
 use App\Category;
 use App\Product;
+use JD\Cloudder\Facades\Cloudder;
 
 
 class CategoryController extends Controller
@@ -34,14 +38,129 @@ class CategoryController extends Controller
             $product->re_post = '0';
             $product->save();
 
-            $max_price = Product_mazad::where('product_id', $row->id)->orderBy('price', 'desc')->first();
+            $max_price = Product_mazad::where('product_id', $row->id)->orderBy('created_at', 'desc')->first();
             if ($max_price) {
                 $max_price->status = 'winner';
                 $max_price->save();
+                $user = User::find($max_price->user_id);
+                $fcm_token = $user->fcm_token;
+                $insert_notification = new Notification();
+                $insert_notification->image = null;
+                $insert_notification->title = 'تم انتهاء المزاد';
+                $insert_notification->body = 'انت الفائز بالمزاد '.$product->title ;
+                $insert_notification->save();
+                $user_notification = new UserNotification();
+                $user_notification->notification_id = $insert_notification->id;
+                $user_notification->user_id = $max_price->user_id;
+                $user_notification->save();
+                APIHelpers::send_notification('تم انتهاء المزاد','تم انتهاء المزاد '.$product->title , null , null , [$fcm_token]);
             }
         }
     }
 
+    public function getCatsSubCats($model, $lang, $show=true, $cat_id=0, $all=false, $whereIn=[]) {
+        $categories = $model::has('Products', '>', 0)
+            ->where('deleted', 0);
+        if ($model == '\App\SubCategory' && $cat_id != 0) {
+            $categories = $categories->where('category_id', $cat_id);
+        }elseif ($model != '\App\Category' && $cat_id != 0) {
+            $categories = $categories->where('sub_category_id', $cat_id);
+        }
+        if (count($whereIn) > 0 && $model != '\App\SubCategory') {
+            $categories = $categories->whereIn('sub_category_id', $whereIn);
+        }
+
+        if (count($whereIn) > 0 && $model == '\App\SubCategory') {
+            $categories = $categories->whereIn('category_id', $whereIn);
+        }
+
+        $categories = $categories->select('id', 'title_' . $lang . ' as title', 'image')->orderBy('sort', 'asc')->get()->makeHidden(['ViewSubCategories', 'products'])
+            ->map(function ($row) use ($show, $model) {
+                if ($show) {
+                    $row->products_count = count($row->products);
+                }
+                $row->next_level = false;
+                $subCategories = $row->ViewSubCategories;
+
+                if ($subCategories && count($subCategories) > 0) {
+                    $hasProducts = false;
+                    for ($n = 0; $n < count($subCategories); $n++) {
+
+                        if ($model != '\App\SubFiveCategory') {
+                            if ($subCategories[$n]->products != null && count($subCategories[$n]->products) > 0) {
+                                $hasProducts = true;
+                            }
+                        }
+                    }
+                    if ($hasProducts) {
+                        $row->next_level = true;
+                    }
+                }
+                $row->selected = false;
+                return $row;
+            })->toArray();
+
+        if ($all) {
+            $title = 'All';
+            if ($lang == 'ar') {
+                $title = 'الكل';
+            }
+            $all = [
+                'id' => 0,
+                'image' => "",
+                'title' => $title,
+                'next_level' => false,
+                'selected' => false
+            ];
+
+            array_unshift($categories, $all);
+        }
+
+        return $categories;
+    }
+
+    public function getcategories(Request $request)
+    {
+        $lang = $request->lang;
+        $categories = Category::where(function ($q) {
+            $q->has('SubCategories', '>', 0)->orWhere(function ($qq) {
+                $qq->has('Products', '>', 0);
+            });
+        })->where('deleted', 0)->select('id', 'title_' . $lang . ' as title', 'image')->orderBy('sort', 'asc')->get();
+
+        for ($i = 0; $i < count($categories); $i++) {
+            //text next level
+            $subTwoCats = SubCategory::where('category_id', $categories[$i]['id'])->where('deleted', 0)->select('id')->first();
+            $categories[$i]['next_level'] = false;
+            if (isset($subTwoCats['id'])) {
+                $categories[$i]['next_level'] = true;
+            }
+
+            /*
+                        if ($categories[$i]['next_level'] == true) {
+                            // check after this level layers
+                            $data_ids = SubCategory::where('deleted', '0')->where('category_id', $categories[$i]['id'])->select('id')->get()->toArray();
+                            $subFiveCats = SubTwoCategory::whereIn('sub_category_id', $data_ids)->where('deleted', '0')->select('id', 'deleted')->get();
+                            if (count($subFiveCats) == 0) {
+                                $have_next_level = false;
+                            } else {
+                                $have_next_level = true;
+                            }
+                            if ($have_next_level == false) {
+                                $categories[$i]['next_level'] = false;
+                            } else {
+                                $categories[$i]['next_level'] = true;
+                                break;
+                            }
+                            //End check
+                        }
+                        */
+        }
+
+        // $data = Categories_ad::select('image','ad_type','content as link')->where('type','category')->inRandomOrder()->take(1)->get();
+        $response = APIHelpers::createApiResponse(false, 200, '', '', array('categories' => $categories), $request->lang);
+        return response()->json($response, 200);
+    }
     public function getcategories(Request $request)
     {
         $lang = $request->lang;
