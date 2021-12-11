@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Category;
 use App\Category_option;
 use App\Mazad_time;
+use App\Notification;
 use App\Participant;
 use App\Product_mazad;
 use App\SubCategory;
@@ -12,6 +13,7 @@ use App\SubFiveCategory;
 use App\SubFourCategory;
 use App\SubThreeCategory;
 use App\SubTwoCategory;
+use App\UserNotification;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Session;
 use JD\Cloudder\Facades\Cloudder;
@@ -50,6 +52,18 @@ class ProductController extends Controller
             if ($max_price) {
                 $max_price->status = 'winner';
                 $max_price->save();
+                $user = User::find($max_price->user_id);
+                $fcm_token = $user->fcm_token;
+                $insert_notification = new Notification();
+                $insert_notification->image = null;
+                $insert_notification->title = 'تم انتهاء المزاد';
+                $insert_notification->body = 'انت الفائز بالمزاد '.$product->title ;
+                $insert_notification->save();
+                $user_notification = new UserNotification();
+                $user_notification->notification_id = $insert_notification->id;
+                $user_notification->user_id = $max_price->user_id;
+                $user_notification->save();
+                APIHelpers::send_notification('تم انتهاء المزاد','تم انتهاء المزاد '.$product->title , null , null , [$fcm_token]);
             }
         }
     }
