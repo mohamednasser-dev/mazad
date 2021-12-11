@@ -152,7 +152,7 @@ class APIHelpers
         $title = $title;
         $image = $image;
         $path_to_fcm = 'https://fcm.googleapis.com/fcm/send';
-        $server_key = "AAAAVXMYan4:APA91bF_EP7-zAn8ZTNCHuBWkUQigGY8LIyGLc4M74ChM3SJkR3BI6kPl9YelKGY7OcfHj_hUg53egi6Mhna02hYzg0oHTGCAPEGLvhVXhb0RYtpdnama5RNHbuukxB7tX48fY-pJQ1_";
+        $server_key = " AAAAqRNC3SI:APA91bGcmPmYzK_WUe1HEs2Zt15w5SXN7PDUJ7jbMBEORrWiNjlh7vUW6vGAnqlAxwKLV50MFA0lPlsUUhE23a-m7bhujfv3lwKMwUfpTs3keea24eBad68oR5tuR6akIVCYeY8fQq7X";
 
         $headers = array(
             'Authorization:key=' . $server_key,
@@ -178,7 +178,7 @@ class APIHelpers
 
     public static function send_chat_notification($tokens, $title = "hello", $msg = "helo msg", $type = 1, $chat = null, $jobs = null)
     {
-        $key = 'AAAAVXMYan4:APA91bF_EP7-zAn8ZTNCHuBWkUQigGY8LIyGLc4M74ChM3SJkR3BI6kPl9YelKGY7OcfHj_hUg53egi6Mhna02hYzg0oHTGCAPEGLvhVXhb0RYtpdnama5RNHbuukxB7tX48fY-pJQ1_';
+        $key = ' AAAAqRNC3SI:APA91bGcmPmYzK_WUe1HEs2Zt15w5SXN7PDUJ7jbMBEORrWiNjlh7vUW6vGAnqlAxwKLV50MFA0lPlsUUhE23a-m7bhujfv3lwKMwUfpTs3keea24eBad68oR5tuR6akIVCYeY8fQq7X';
         $fields = array
         (
             "registration_ids" => (array)$tokens,  //array of user token whom notification sent two
