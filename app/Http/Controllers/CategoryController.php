@@ -368,10 +368,10 @@ class CategoryController extends Controller
 
             $data['sub_category_level2'] = SubTwoCategory::where('id', $request->sub_category_id)->select('id', 'title_' . $lang . ' as title', 'sub_category_id')->first();
             if ($request->sub_category_level1_id != 0) {
-                $data['sub_category_array'] = SubThreeCategory::where('sub_category_id', $request->sub_category_id)
+                $data['sub_category_array'] = SubThreeCategory::where('deleted', 0)->where('sub_category_id', $request->sub_category_id)
                     ->select('id', 'title_' . $lang . ' as title', 'sub_category_id')->orderBy('sort', 'asc')->get()->toArray();
             } else {
-                $data['sub_category_array'] = SubThreeCategory::whereIn('sub_category_id', $request->sub_category_id)
+                $data['sub_category_array'] = SubThreeCategory::where('deleted', 0)->whereIn('sub_category_id', $request->sub_category_id)
                     ->select('id', 'title_' . $lang . ' as title', 'sub_category_id')->orderBy('sort', 'asc')->get()->toArray();
             }
             $data['category'] = Category::where('id', $request->category_id)->select('id', 'title_' . $lang . ' as title')->first();
@@ -469,34 +469,18 @@ class CategoryController extends Controller
         if ($All_sub_cat == false) {
             if ($request->sub_category_id != 0) {
                 if ($request->sub_category_id != 0) {
-                    $data['sub_category_array'] = SubThreeCategory::where(function ($q) {
-                        $q->has('SubCategories', '>', 0)->orWhere(function ($qq) {
-                            $qq->has('Products', '>', 0);
-                        });
-                    })->where('sub_category_id', $request->sub_category_id)
+                    $data['sub_category_array'] = SubThreeCategory::where('sub_category_id', $request->sub_category_id)
                         ->select('id', 'title_' . $lang . ' as title', 'sub_category_id')->orderBy('sort', 'asc')->get()->toArray();
                 } else {
-                    $data['sub_category_array'] = SubThreeCategory::where(function ($q) {
-                        $q->has('SubCategories', '>', 0)->orWhere(function ($qq) {
-                            $qq->has('Products', '>', 0);
-                        });
-                    })->whereIn('sub_category_id', $subCategoriesTwo)
+                    $data['sub_category_array'] = SubThreeCategory::whereIn('sub_category_id', $subCategoriesTwo)
                         ->select('id', 'title_' . $lang . ' as title', 'sub_category_id')->orderBy('sort', 'asc')->get()->toArray();
                 }
             } else {
                 if ($request->sub_category_id != 0) {
-                    $data['sub_category_array'] = SubThreeCategory::where(function ($q) {
-                        $q->has('SubCategories', '>', 0)->orWhere(function ($qq) {
-                            $qq->has('Products', '>', 0);
-                        });
-                    })->where('sub_category_id', $request->sub_category_id)
+                    $data['sub_category_array'] = SubThreeCategory::where('sub_category_id', $request->sub_category_id)
                         ->select('id', 'title_' . $lang . ' as title', 'sub_category_id')->orderBy('sort', 'asc')->get()->toArray();
                 } else {
-                    $data['sub_category_array'] = SubThreeCategory::where(function ($q) {
-                        $q->has('SubCategories', '>', 0)->orWhere(function ($qq) {
-                            $qq->has('Products', '>', 0);
-                        });
-                    })->whereIn('sub_category_id', $subCategoriesTwo)
+                    $data['sub_category_array'] = SubThreeCategory::whereIn('sub_category_id', $subCategoriesTwo)
                         ->select('id', 'title_' . $lang . ' as title', 'sub_category_id')->orderBy('sort', 'asc')->get()->toArray();
                 }
             }
@@ -510,11 +494,7 @@ class CategoryController extends Controller
             }
         }
         if (count($data['sub_category_array']) == 0) {
-            $data['sub_category_array'] = SubTwoCategory::where(function ($q) {
-                $q->has('SubCategories', '>', 0)->orWhere(function ($qq) {
-                    $qq->has('Products', '>', 0);
-                });
-            })->where('sub_category_id', $request->sub_category_level1_id)
+            $data['sub_category_array'] = SubTwoCategory::where('sub_category_id', $request->sub_category_level1_id)
                 ->select('id', 'title_' . $lang . ' as title', 'sub_category_id')
                 ->orderBy('sort', 'asc')->get()->makeHidden('category_id')->toArray();
         }
