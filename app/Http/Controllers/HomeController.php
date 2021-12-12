@@ -46,28 +46,29 @@ class HomeController extends Controller
                 $insert_notification = new Notification();
                 $insert_notification->image = null;
                 $insert_notification->title = 'تم انتهاء المزاد';
-                $insert_notification->body = 'انت الفائز بالمزاد '.$product->title ;
+                $insert_notification->body = 'انت الفائز بالمزاد ' . $product->title;
                 $insert_notification->save();
                 $user_notification = new UserNotification();
                 $user_notification->notification_id = $insert_notification->id;
                 $user_notification->user_id = $max_price->user_id;
                 $user_notification->save();
-                APIHelpers::send_notification('تم انتهاء المزاد','انت الفائز بالمزاد '.$product->title , null , null , [$fcm_token]);
+                APIHelpers::send_notification('تم انتهاء المزاد', 'انت الفائز بالمزاد ' . $product->title, null, null, [$fcm_token]);
 
-                //mazad user owner notify
-                $owner_user = User::find($product->user_id);
-                $owner_fcm_token = $owner_user->fcm_token;
-                $insert_owner_notify = new Notification();
-                $insert_owner_notify->image = null;
-                $insert_owner_notify->title = 'تم انتهاء المزاد';
-                $insert_owner_notify->body = 'تم انتهاء المزاد الخاص بك - '.$product->title ;
-                $insert_owner_notify->save();
-                $user_owner_notification = new UserNotification();
-                $user_owner_notification->notification_id = $insert_owner_notify->id;
-                $user_owner_notification->user_id = $product->user_id;
-                $user_owner_notification->save();
-                APIHelpers::send_notification('تم انتهاء المزاد','تم انتهاء المزاد الخاص بك - '.$product->title , null , null , [$owner_fcm_token]);
             }
+            //mazad user owner notify
+            $owner_user = User::find($product->user_id);
+            $owner_fcm_token = $owner_user->fcm_token;
+            $insert_owner_notify = new Notification();
+            $insert_owner_notify->image = null;
+            $insert_owner_notify->title = 'تم انتهاء المزاد';
+            $insert_owner_notify->body = 'تم انتهاء المزاد الخاص بك - ' . $product->title;
+            $insert_owner_notify->save();
+            $user_owner_notification = new UserNotification();
+            $user_owner_notification->notification_id = $insert_owner_notify->id;
+            $user_owner_notification->user_id = $product->user_id;
+            $user_owner_notification->save();
+            APIHelpers::send_notification('تم انتهاء المزاد', 'تم انتهاء المزاد الخاص بك - ' . $product->title, null, null, [$owner_fcm_token]);
+
         }
     }
 
@@ -169,7 +170,7 @@ class HomeController extends Controller
             ->with('Sub_categories')
 //            ->with('Category_ads')
             ->where('deleted', 0)
-            ->select('id', 'title_' . $lang . ' as title','desc_'.$lang.' as description')
+            ->select('id', 'title_' . $lang . ' as title', 'desc_' . $lang . ' as description')
             ->get()->map(function ($data) use ($user) {
                 $data->mazad_count = Product::where('category_id', $data->id)->where('status', 1)->where('publish', 'Y')->where('deleted', 0)->get()->count();
                 foreach ($data->Sub_categories as $key => $row) {
@@ -178,7 +179,7 @@ class HomeController extends Controller
 //                    })->where('deleted', 0)->where('sub_category_id', $row->id)->get();
 //                    if(count($exists_cats) > 0){
                     if ($user) {
-                        $favorite = Favorite::where('type', 'category')->where('category_type','1')->where('product_id', $row->id)->where('user_id',$user->id)->first();
+                        $favorite = Favorite::where('type', 'category')->where('category_type', '1')->where('product_id', $row->id)->where('user_id', $user->id)->first();
                         if ($favorite) {
                             $data['Sub_categories'][$key]->favorite = true;
                         } else {

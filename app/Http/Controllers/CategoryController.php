@@ -48,37 +48,39 @@ class CategoryController extends Controller
                 $insert_notification = new Notification();
                 $insert_notification->image = null;
                 $insert_notification->title = 'تم انتهاء المزاد';
-                $insert_notification->body = 'انت الفائز بالمزاد '.$product->title ;
+                $insert_notification->body = 'انت الفائز بالمزاد ' . $product->title;
                 $insert_notification->save();
                 $user_notification = new UserNotification();
                 $user_notification->notification_id = $insert_notification->id;
                 $user_notification->user_id = $max_price->user_id;
                 $user_notification->save();
-                APIHelpers::send_notification('تم انتهاء المزاد','انت الفائز بالمزاد '.$product->title , null , null , [$fcm_token]);
+                APIHelpers::send_notification('تم انتهاء المزاد', 'انت الفائز بالمزاد ' . $product->title, null, null, [$fcm_token]);
 
-                //mazad user owner notify
-                $owner_user = User::find($product->user_id);
-                $owner_fcm_token = $owner_user->fcm_token;
-                $insert_owner_notify = new Notification();
-                $insert_owner_notify->image = null;
-                $insert_owner_notify->title = 'تم انتهاء المزاد';
-                $insert_owner_notify->body = 'تم انتهاء المزاد الخاص بك - '.$product->title ;
-                $insert_owner_notify->save();
-                $user_owner_notification = new UserNotification();
-                $user_owner_notification->notification_id = $insert_owner_notify->id;
-                $user_owner_notification->user_id = $product->user_id;
-                $user_owner_notification->save();
-                APIHelpers::send_notification('تم انتهاء المزاد','تم انتهاء المزاد الخاص بك - '.$product->title , null , null , [$owner_fcm_token]);
             }
+            //mazad user owner notify
+            $owner_user = User::find($product->user_id);
+            $owner_fcm_token = $owner_user->fcm_token;
+            $insert_owner_notify = new Notification();
+            $insert_owner_notify->image = null;
+            $insert_owner_notify->title = 'تم انتهاء المزاد';
+            $insert_owner_notify->body = 'تم انتهاء المزاد الخاص بك - ' . $product->title;
+            $insert_owner_notify->save();
+            $user_owner_notification = new UserNotification();
+            $user_owner_notification->notification_id = $insert_owner_notify->id;
+            $user_owner_notification->user_id = $product->user_id;
+            $user_owner_notification->save();
+            APIHelpers::send_notification('تم انتهاء المزاد', 'تم انتهاء المزاد الخاص بك - ' . $product->title, null, null, [$owner_fcm_token]);
+
         }
     }
 
-    public function getCatsSubCats($model, $lang, $show=true, $cat_id=0, $all=false, $whereIn=[]) {
+    public function getCatsSubCats($model, $lang, $show = true, $cat_id = 0, $all = false, $whereIn = [])
+    {
         $categories = $model::has('Products', '>', 0)
             ->where('deleted', 0);
         if ($model == '\App\SubCategory' && $cat_id != 0) {
             $categories = $categories->where('category_id', $cat_id);
-        }elseif ($model != '\App\Category' && $cat_id != 0) {
+        } elseif ($model != '\App\Category' && $cat_id != 0) {
             $categories = $categories->where('sub_category_id', $cat_id);
         }
         if (count($whereIn) > 0 && $model != '\App\SubCategory') {
@@ -176,6 +178,7 @@ class CategoryController extends Controller
         $response = APIHelpers::createApiResponse(false, 200, '', '', array('categories' => $categories), $request->lang);
         return response()->json($response, 200);
     }
+
     public function get_categories(Request $request)
     {
         $lang = $request->lang;
@@ -429,7 +432,7 @@ class CategoryController extends Controller
         }
 
         array_unshift($data['sub_categories']);
-        if($request->orderBy == null){
+        if ($request->orderBy == null) {
             $request->orderBy = 'desc';
         }
         if ($request->sub_category_id == 0) {
@@ -662,9 +665,9 @@ class CategoryController extends Controller
         if ($request->sub_category_level1_id != 0) {
             $products = $products->where('sub_category_id', $request->sub_category_level1_id);
         }
-if($request->orderBy == null){
-    $request->orderBy ='desc' ;
-}
+        if ($request->orderBy == null) {
+            $request->orderBy = 'desc';
+        }
         $products = $products->orderBy('price', $request->orderBy)->simplePaginate(12);
 
         for ($i = 0; $i < count($products); $i++) {
@@ -863,10 +866,10 @@ if($request->orderBy == null){
         if ($request->sub_category_level1_id != 0) {
             $products = $products->where('sub_category_id', $request->sub_category_level1_id);
         }
-if($request->orderBy == null){
+        if ($request->orderBy == null) {
 
-    $request->orderBy = 'desc';
-}
+            $request->orderBy = 'desc';
+        }
         $products = $products->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')
             ->orderBy('price', $request->orderBy)->simplePaginate(12);
         for ($i = 0; $i < count($products); $i++) {
@@ -1033,7 +1036,7 @@ if($request->orderBy == null){
         if ($request->sub_category_level1_id != 0) {
             $products = $products->where('sub_category_id', $request->sub_category_level1_id);
         }
-        if( $request->orderBy == null){
+        if ($request->orderBy == null) {
             $request->orderBy = 'desc';
         }
         $products = $products->select('id', 'title', 'price', 'main_image as image', 'pin', 'created_at')

@@ -175,6 +175,7 @@ use Illuminate\Http\Request;
 
     Route::get('/ad/select_my_ads/{lang}/{v}' , 'ProductController@select_ended_ads');
     Route::get('/ad/ended_ads/{lang}/{v}' , 'ProductController@ended_ads');
+    Route::get('/ad/end_mazad/{id}/{lang}/{v}' , 'ProductController@end_mazad');
     Route::get('/ad/current_ads/{lang}/{v}' , 'ProductController@current_ads');
     Route::get('/ad/select_current_ads/{lang}/{v}' , 'ProductController@select_current_ads');
     Route::get('/ad/select_all_ads/{lang}/{v}' , 'ProductController@select_all_ads');
