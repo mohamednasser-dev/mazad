@@ -38,7 +38,7 @@ class ProductController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['get_mazad_times', 'ad_owner_info', 'current_ads','end_mazad', 'ended_ads', 'max_min_price', 'filter', 'offer_ads', 'republish_ad', 'areas', 'cities', 'third_step_excute_pay', 'save_third_step_with_money', 'update_ad', 'select_ad_data', 'delete_my_ad', 'save_third_
+        $this->middleware('auth:api', ['except' => ['get_mazad_times', 'ad_owner_info', 'current_ads', 'end_mazad', 'ended_ads', 'max_min_price', 'filter', 'offer_ads', 'republish_ad', 'areas', 'cities', 'third_step_excute_pay', 'save_third_step_with_money', 'update_ad', 'select_ad_data', 'delete_my_ad', 'save_third_
         step', 'save_second_step', 'save_first_step', 'make_mazad', 'getdetails', 'last_seen', 'getoffers', 'getproducts', 'getsearch', 'getFeatureOffers']]);
         //        --------------------------------------------- begin scheduled functions --------------------------------------------------------
         $expired = Product::where('status', 1)->whereDate('expiry_date', '<', Carbon::now())->get();
@@ -58,13 +58,13 @@ class ProductController extends Controller
                 $insert_notification = new Notification();
                 $insert_notification->image = null;
                 $insert_notification->title = 'تم انتهاء المزاد';
-                $insert_notification->body = 'انت الفائز بالمزاد '.$product->title ;
+                $insert_notification->body = 'انت الفائز بالمزاد ' . $product->title;
                 $insert_notification->save();
                 $user_notification = new UserNotification();
                 $user_notification->notification_id = $insert_notification->id;
                 $user_notification->user_id = $max_price->user_id;
                 $user_notification->save();
-                APIHelpers::send_notification('تم انتهاء المزاد','انت الفائز بالمزاد '.$product->title , null , null , [$fcm_token]);
+                APIHelpers::send_notification('تم انتهاء المزاد', 'انت الفائز بالمزاد ' . $product->title, null, null, [$fcm_token]);
             }
 
             //mazad user owner notify
@@ -73,13 +73,13 @@ class ProductController extends Controller
             $insert_owner_notify = new Notification();
             $insert_owner_notify->image = null;
             $insert_owner_notify->title = 'تم انتهاء المزاد';
-            $insert_owner_notify->body = 'تم انتهاء المزاد الخاص بك - '.$product->title ;
+            $insert_owner_notify->body = 'تم انتهاء المزاد الخاص بك - ' . $product->title;
             $insert_owner_notify->save();
             $user_owner_notification = new UserNotification();
             $user_owner_notification->notification_id = $insert_owner_notify->id;
             $user_owner_notification->user_id = $product->user_id;
             $user_owner_notification->save();
-            APIHelpers::send_notification('تم انتهاء المزاد','تم انتهاء المزاد الخاص بك - '.$product->title , null , null , [$owner_fcm_token]);
+            APIHelpers::send_notification('تم انتهاء المزاد', 'تم انتهاء المزاد الخاص بك - ' . $product->title, null, null, [$owner_fcm_token]);
         }
     }
 
@@ -227,7 +227,7 @@ class ProductController extends Controller
         $data = Product::with('Product_user')->with('category_name')
             ->select('id', 'title', 'main_image', 'description', 'expiry_date', 'day_count_id',
                 'price', 'min_price', 'type', 'publication_date as date', 'user_id', 'category_id', 'latitude', 'longitude',
-                'share_location','show_whatsapp', 'city_id', 'area_id')
+                'share_location', 'show_whatsapp', 'city_id', 'area_id')
             ->find($request->id)->makeHidden(['City', 'Area']);
 
         $data->address = $data->City->title_ar . ' , ' . $data->Area->title_ar;
@@ -553,7 +553,7 @@ class ProductController extends Controller
             'sub_category_id' => 'required',
             'title' => 'required',
             'main_image' => 'required',
-            'images' => 'required',
+            'images' => '',
             'city_id' => 'required|exists:cities,id',
             'area_id' => 'required|exists:areas,id',
             'latitude' => 'required',
@@ -600,17 +600,18 @@ class ProductController extends Controller
 //                    $mazad_data['user_id'] = $user->id;
 //                    Product_mazad::create($mazad_data);
 //                }
+                if ($request->images) {
+                    foreach ($request->images as $image) {
+                        Cloudder::upload("data:image/jpeg;base64," . $image, null);
+                        $imagereturned = Cloudder::getResult();
+                        $image_id = $imagereturned['public_id'];
+                        $image_format = $imagereturned['format'];
+                        $image_name = $image_id . '.' . $image_format;
 
-                foreach ($request->images as $image) {
-                    Cloudder::upload("data:image/jpeg;base64," . $image, null);
-                    $imagereturned = Cloudder::getResult();
-                    $image_id = $imagereturned['public_id'];
-                    $image_format = $imagereturned['format'];
-                    $image_name = $image_id . '.' . $image_format;
-
-                    $data['product_id'] = $ad_data->id;
-                    $data['image'] = $image_name;
-                    ProductImage::create($data);
+                        $data['product_id'] = $ad_data->id;
+                        $data['image'] = $image_name;
+                        ProductImage::create($data);
+                    }
                 }
                 $response = APIHelpers::createApiResponse(false, 200, 'your auction added successfully', 'تم أنشاء المزاد بنجاح', null, $request->lang);
                 return response()->json($response, 200);
@@ -992,15 +993,16 @@ class ProductController extends Controller
             return response()->json($response, 200);
         }
     }
-    public function end_mazad(Request $request,$id)
+
+    public function end_mazad(Request $request, $id)
     {
         $user = auth()->user();
         if ($user == null) {
             $response = APIHelpers::createApiResponse(true, 406, 'you should login first', 'يجب تسجيل الدخول اولا', null, $request->lang);
             return response()->json($response, 406);
         }
-        $product = Product::where('id',$id)->where('user_id',$user->id)->where('status',1)->first();
-        if($product == null){
+        $product = Product::where('id', $id)->where('user_id', $user->id)->where('status', 1)->first();
+        if ($product == null) {
             $response = APIHelpers::createApiResponse(true, 406, 'you should choose current Mazad', 'يجب اختيار مذاد حالي لك', null, $request->lang);
             return response()->json($response, 406);
         }
@@ -1018,13 +1020,13 @@ class ProductController extends Controller
             $insert_notification = new Notification();
             $insert_notification->image = null;
             $insert_notification->title = 'تم انتهاء المزاد';
-            $insert_notification->body = 'انت الفائز بالمزاد '.$product->title ;
+            $insert_notification->body = 'انت الفائز بالمزاد ' . $product->title;
             $insert_notification->save();
             $user_notification = new UserNotification();
             $user_notification->notification_id = $insert_notification->id;
             $user_notification->user_id = $max_price->user_id;
             $user_notification->save();
-            APIHelpers::send_notification('تم انتهاء المزاد','انت الفائز بالمزاد '.$product->title , null , null , [$fcm_token]);
+            APIHelpers::send_notification('تم انتهاء المزاد', 'انت الفائز بالمزاد ' . $product->title, null, null, [$fcm_token]);
         }
         //mazad user owner notify
         $owner_user = User::find($product->user_id);
@@ -1032,13 +1034,13 @@ class ProductController extends Controller
         $insert_owner_notify = new Notification();
         $insert_owner_notify->image = null;
         $insert_owner_notify->title = 'تم انتهاء المزاد';
-        $insert_owner_notify->body = 'تم انتهاء المزاد الخاص بك - '.$product->title ;
+        $insert_owner_notify->body = 'تم انتهاء المزاد الخاص بك - ' . $product->title;
         $insert_owner_notify->save();
         $user_owner_notification = new UserNotification();
         $user_owner_notification->notification_id = $insert_owner_notify->id;
         $user_owner_notification->user_id = $product->user_id;
         $user_owner_notification->save();
-        APIHelpers::send_notification('تم انتهاء المزاد','تم انتهاء المزاد الخاص بك - '.$product->title , null , null , [$owner_fcm_token]);
+        APIHelpers::send_notification('تم انتهاء المزاد', 'تم انتهاء المزاد الخاص بك - ' . $product->title, null, null, [$owner_fcm_token]);
 
         $response = APIHelpers::createApiResponse(false, 200, 'Mazad ended successfully', 'تم انهاء المزاد بنجاح', null, $request->lang);
         return response()->json($response, 200);
@@ -1313,7 +1315,7 @@ class ProductController extends Controller
             ->with('Area_api')
             ->select('id', 'category_id', 'sub_category_id', 'sub_category_two_id', 'sub_category_three_id',
                 'sub_category_four_id', 'sub_category_five_id', 'title', 'day_count_id', 'price', 'min_price',
-                'description', 'main_image', 'city_id', 'area_id', 'share_location','show_whatsapp', 'latitude', 'longitude')
+                'description', 'main_image', 'city_id', 'area_id', 'share_location', 'show_whatsapp', 'latitude', 'longitude')
             ->first();
         $data['ad']->price = number_format((float)($data['ad']->price), 3);
 
